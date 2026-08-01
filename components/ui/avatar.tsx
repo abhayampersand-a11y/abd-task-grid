@@ -19,16 +19,20 @@ export function Avatar({
   size = "md",
   className,
   ring = false,
+  /** Pink halo used for the signed-in user in the header. */
+  accentRing = false,
 }: {
   user: Pick<UserSummary, "id" | "fullName" | "avatarUrl">;
   size?: AvatarSize;
   className?: string;
   ring?: boolean;
+  accentRing?: boolean;
 }) {
   const base = cn(
     "inline-flex shrink-0 items-center justify-center rounded-full font-semibold select-none",
     SIZES[size],
     ring && "ring-2 ring-surface",
+    accentRing && "ring-2 ring-brand-500 ring-offset-2 ring-offset-surface",
     className,
   );
 

@@ -76,7 +76,7 @@ export function Sidebar({
       >
         {/* Workspace identity */}
         <div className="flex items-center gap-3 px-5 py-5">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-soft">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-pop">
             {isAdmin ? (
               <ShieldCheck className="size-5.5" />
             ) : (
@@ -130,9 +130,9 @@ export function Sidebar({
                 href={item.href}
                 onClick={close}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200",
+                  "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200",
                   active
-                    ? "bg-brand-600 text-white shadow-soft"
+                    ? "bg-brand-600 text-white shadow-pop"
                     : "text-ink-soft hover:bg-brand-50 hover:text-brand-700",
                 )}
               >

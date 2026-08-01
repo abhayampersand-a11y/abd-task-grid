@@ -1,44 +1,65 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   TaskFlow Pro design tokens
-   Enterprise-calm: near-white canvas, hairline borders, one confident accent.
+   TaskFlow — "candy" design tokens
+   Blush canvas, hot-pink accent, lavender + sky supporting tones.
+   Pill-shaped controls, generous radii, soft diffuse shadows.
 --------------------------------------------------------------------------- */
 
 @theme {
-  --color-canvas: #f6f7f9;
+  --color-canvas: #fdf7fc;
   --color-surface: #ffffff;
-  --color-surface-muted: #fafbfc;
+  --color-surface-muted: #faf4f9;
 
-  --color-line: #e6e8ee;
-  --color-line-strong: #d5d8e2;
+  --color-line: #f4e8f2;
+  --color-line-strong: #e7d5e4;
 
-  --color-ink: #0f1222;
-  --color-ink-soft: #4a4f63;
-  --color-ink-muted: #767c92;
-  --color-ink-faint: #9aa0b4;
+  --color-ink: #1b1420;
+  --color-ink-soft: #574d5c;
+  --color-ink-muted: #857c8a;
+  --color-ink-faint: #a99fae;
 
-  --color-brand-50: #eef0ff;
-  --color-brand-100: #e0e3ff;
-  --color-brand-200: #c6cbff;
-  --color-brand-300: #a3a8ff;
-  --color-brand-400: #8079fb;
-  --color-brand-500: #6650f2;
-  --color-brand-600: #4f39f6;
-  --color-brand-700: #4127d9;
-  --color-brand-800: #3622ad;
-  --color-brand-900: #2f2189;
-  --color-brand-950: #1e1259;
+  /* Primary — hot pink */
+  --color-brand-50: #fdf2f9;
+  --color-brand-100: #fce7f3;
+  --color-brand-200: #fbcfe8;
+  --color-brand-300: #f9a8d4;
+  --color-brand-400: #f472b6;
+  --color-brand-500: #ec4899;
+  --color-brand-600: #e4318e;
+  --color-brand-700: #c71f76;
+  --color-brand-800: #a31860;
+  --color-brand-900: #86174f;
+  --color-brand-950: #52082d;
 
-  --radius-card: 1rem;
+  /* Supporting — lavender */
+  --color-lilac-50: #f5f0fe;
+  --color-lilac-100: #e9dffd;
+  --color-lilac-200: #ddccfc;
+  --color-lilac-500: #8b5cf6;
+  --color-lilac-600: #7c3aed;
+  --color-lilac-700: #6d28d9;
 
-  --shadow-soft: 0 1px 2px rgb(15 18 34 / 0.04), 0 1px 3px rgb(15 18 34 / 0.03);
-  --shadow-raise: 0 4px 12px rgb(15 18 34 / 0.06), 0 2px 4px rgb(15 18 34 / 0.04);
-  --shadow-float: 0 12px 32px rgb(15 18 34 / 0.1), 0 4px 8px rgb(15 18 34 / 0.05);
-  --shadow-overlay: 0 24px 64px rgb(15 18 34 / 0.18);
+  /* Supporting — sky */
+  --color-aqua-50: #e8f7fe;
+  --color-aqua-100: #cfeffd;
+  --color-aqua-200: #b3e5fc;
+  --color-aqua-500: #38bdf8;
+  --color-aqua-600: #17a9e8;
+  --color-aqua-700: #0284c7;
+
+  --radius-card: 1.5rem;
+  --radius-tile: 1.25rem;
+
+  --shadow-soft: 0 2px 8px rgb(139 60 116 / 0.05);
+  --shadow-raise: 0 6px 18px rgb(139 60 116 / 0.07), 0 2px 6px rgb(139 60 116 / 0.04);
+  --shadow-float: 0 14px 34px rgb(139 60 116 / 0.12), 0 4px 10px rgb(139 60 116 / 0.06);
+  --shadow-overlay: 0 24px 64px rgb(27 20 32 / 0.22);
+  --shadow-pop: 0 10px 24px rgb(228 49 142 / 0.32);
 
   --animate-fade-up: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-scale-in: scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-sheet-up: sheet-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 }
 
@@ -60,6 +81,15 @@
   }
   to {
     opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
     transform: none;
   }
 }
@@ -103,7 +133,7 @@
 }
 
 @layer components {
-  /* A card: hairline border, near-white fill, restrained lift. */
+  /* Soft white card — shadow does the separating, not a hard border. */
   .card {
     background-color: var(--color-surface);
     border: 1px solid var(--color-line);
@@ -113,15 +143,20 @@
 
   .card-interactive {
     transition:
-      box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
-      border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
-      transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .card-interactive:hover {
-    border-color: var(--color-line-strong);
+    border-color: var(--color-brand-200);
     box-shadow: var(--shadow-raise);
     transform: translateY(-2px);
+  }
+
+  /* Keeps content clear of the mobile tab bar and the iOS home indicator. */
+  .pb-nav {
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
   }
 }
 
@@ -156,5 +191,9 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

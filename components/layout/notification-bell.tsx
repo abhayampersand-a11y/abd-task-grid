@@ -24,11 +24,11 @@ export const NOTIFICATION_ICON: Record<
   NotificationType,
   { icon: typeof Bell; tint: string }
 > = {
-  TASK_ASSIGNED: { icon: UserPlus, tint: "bg-brand-50 text-brand-600" },
-  TASK_UPDATED: { icon: RefreshCw, tint: "bg-sky-50 text-sky-600" },
-  TASK_COMPLETED: { icon: CheckCircle2, tint: "bg-emerald-50 text-emerald-600" },
-  NEW_COMMENT: { icon: MessageSquare, tint: "bg-violet-50 text-violet-600" },
-  GROUP_INVITATION: { icon: UserPlus, tint: "bg-amber-50 text-amber-600" },
+  TASK_ASSIGNED: { icon: UserPlus, tint: "bg-brand-100 text-brand-600" },
+  TASK_UPDATED: { icon: RefreshCw, tint: "bg-aqua-100 text-aqua-700" },
+  TASK_COMPLETED: { icon: CheckCircle2, tint: "bg-emerald-100 text-emerald-600" },
+  NEW_COMMENT: { icon: MessageSquare, tint: "bg-lilac-100 text-lilac-600" },
+  GROUP_INVITATION: { icon: UserPlus, tint: "bg-amber-100 text-amber-600" },
 };
 
 export function NotificationBell() {
