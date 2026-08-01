@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   TaskFlow Pro design tokens
+   Enterprise-calm: near-white canvas, hairline borders, one confident accent.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafbfc;
+
+  --color-line: #e6e8ee;
+  --color-line-strong: #d5d8e2;
+
+  --color-ink: #0f1222;
+  --color-ink-soft: #4a4f63;
+  --color-ink-muted: #767c92;
+  --color-ink-faint: #9aa0b4;
+
+  --color-brand-50: #eef0ff;
+  --color-brand-100: #e0e3ff;
+  --color-brand-200: #c6cbff;
+  --color-brand-300: #a3a8ff;
+  --color-brand-400: #8079fb;
+  --color-brand-500: #6650f2;
+  --color-brand-600: #4f39f6;
+  --color-brand-700: #4127d9;
+  --color-brand-800: #3622ad;
+  --color-brand-900: #2f2189;
+  --color-brand-950: #1e1259;
+
+  --radius-card: 1rem;
+
+  --shadow-soft: 0 1px 2px rgb(15 18 34 / 0.04), 0 1px 3px rgb(15 18 34 / 0.03);
+  --shadow-raise: 0 4px 12px rgb(15 18 34 / 0.06), 0 2px 4px rgb(15 18 34 / 0.04);
+  --shadow-float: 0 12px 32px rgb(15 18 34 / 0.1), 0 4px 8px rgb(15 18 34 / 0.05);
+  --shadow-overlay: 0 24px 64px rgb(15 18 34 / 0.18);
+
+  --animate-fade-up: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-scale-in: scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-100);
+    color: var(--color-brand-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* A card: hairline border, near-white fill, restrained lift. */
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .card-interactive {
+    transition:
+      box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-interactive:hover {
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-raise);
+    transform: translateY(-2px);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-line-strong);
+    border-radius: 999px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
