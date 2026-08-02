@@ -61,8 +61,9 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative flex max-h-[92vh] w-full flex-col overflow-hidden bg-surface shadow-overlay animate-scale-in",
-          "rounded-t-2xl sm:rounded-2xl",
+          // Bottom sheet on phones, centred dialog from `sm` up.
+          "relative flex max-h-[92vh] w-full flex-col overflow-hidden bg-surface shadow-overlay",
+          "animate-sheet-up rounded-t-[28px] sm:animate-scale-in sm:rounded-card",
           WIDTHS[width],
         )}
       >

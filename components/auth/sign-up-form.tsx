@@ -62,7 +62,7 @@ export function SignUpForm() {
     <div className="mx-auto w-full max-w-[560px] animate-fade-up">
       <div className="text-center">
         <div className="inline-flex items-center gap-3">
-          <LogoMark className="size-11" />
+          <LogoMark className="size-12 rounded-[18px]" />
           <Logo className="text-2xl [&>span]:text-2xl" />
         </div>
         <p className="mx-auto mt-4 max-w-sm text-balance text-sm leading-relaxed text-ink-muted">

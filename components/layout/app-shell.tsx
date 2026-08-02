@@ -5,9 +5,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { AssignTaskModal } from "@/components/tasks/assign-task-modal";
+import { Button } from "@/components/ui/button";
 import { useMeQuery, useSignOutMutation } from "@/store/api";
+import { BottomNav } from "./bottom-nav";
+import { MobileTopbar } from "./mobile-topbar";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+import { ShellContext } from "./shell-context";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -25,16 +29,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (isError || !data) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-canvas px-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-canvas px-6 text-center">
         <p className="text-sm text-ink-muted">
           Your session has expired. Please sign in again.
         </p>
-        <a
-          href="/sign-in"
-          className="text-sm font-semibold text-brand-600 hover:text-brand-700"
-        >
-          Go to sign in
-        </a>
+        <Button onClick={() => router.push("/sign-in")}>Go to sign in</Button>
       </div>
     );
   }
@@ -49,26 +48,41 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <Sidebar
-        user={user}
-        onNewTask={() => setTaskModalOpen(true)}
-        onSignOut={handleSignOut}
-      />
+    <ShellContext.Provider
+      value={{ user, openTaskModal: () => setTaskModalOpen(true) }}
+    >
+      <div className="min-h-screen bg-canvas">
+        {/* Desktop chrome */}
+        <div className="hidden lg:block">
+          <Sidebar
+            user={user}
+            onNewTask={() => setTaskModalOpen(true)}
+            onSignOut={handleSignOut}
+          />
+        </div>
 
-      <div className="lg:pl-[264px]">
-        <Topbar user={user} onSignOut={handleSignOut} />
-        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          {children}
-        </main>
+        <div className="lg:pl-[264px]">
+          <div className="hidden lg:block">
+            <Topbar user={user} onSignOut={handleSignOut} />
+          </div>
+
+          {/* Phone chrome */}
+          <MobileTopbar user={user} />
+
+          <main className="pb-nav mx-auto w-full max-w-[1400px] px-4 pt-2 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
+            {children}
+          </main>
+        </div>
+
+        <BottomNav user={user} />
+
+        {user.role !== "ADMIN" && (
+          <AssignTaskModal
+            open={taskModalOpen}
+            onClose={() => setTaskModalOpen(false)}
+          />
+        )}
       </div>
-
-      {user.role !== "ADMIN" && (
-        <AssignTaskModal
-          open={taskModalOpen}
-          onClose={() => setTaskModalOpen(false)}
-        />
-      )}
-    </div>
+    </ShellContext.Provider>
   );
 }
