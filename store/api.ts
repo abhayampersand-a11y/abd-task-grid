@@ -45,14 +45,34 @@ export function toApiError(error: unknown): ApiErrorShape {
 }
 
 export interface TaskFilters {
-  scope?: "assigned-to-me" | "assigned-by-me";
+  scope?: "assigned-to-me" | "assigned-by-me" | "all";
   groupId?: string;
   status?: string;
   priority?: string;
   assignedBy?: string;
   assigneeId?: string;
+  /** overdue | today | week | none */
+  due?: string;
   q?: string;
   sort?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface TaskListResponse {
+  tasks: TaskSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface TaskStats {
+  total: number;
+  pending: number;
+  inProgress: number;
+  completed: number;
+  overdue: number;
 }
 
 export interface AdminUserFilters {
@@ -197,8 +217,15 @@ export const api = createApi({
     }),
 
     // ── Tasks ─────────────────────────────────────────────────────────────
-    tasks: build.query<{ tasks: TaskSummary[] }, TaskFilters>({
+    tasks: build.query<TaskListResponse, TaskFilters>({
       query: (filters) => ({ url: "/tasks", params: clean({ ...filters }) }),
+      providesTags: ["TaskList"],
+    }),
+    taskStats: build.query<TaskStats, TaskFilters>({
+      query: (filters) => ({
+        url: "/tasks/stats",
+        params: clean({ ...filters }),
+      }),
       providesTags: ["TaskList"],
     }),
     task: build.query<{ task: TaskDetail }, string>({
@@ -339,6 +366,7 @@ export const {
   useRemoveGroupMemberMutation,
   useDirectoryQuery,
   useTasksQuery,
+  useTaskStatsQuery,
   useTaskQuery,
   useCreateTaskMutation,
   useUpdateTaskMutation,

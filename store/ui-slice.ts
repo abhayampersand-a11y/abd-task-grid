@@ -11,11 +11,24 @@ export interface TaskFilterState {
   sort: "newest" | "oldest" | "due-soon" | "priority";
 }
 
+/** Filters for the dashboard's all-tasks table. Kept separate from the
+ *  per-group tab filters so switching screens doesn't clobber either. */
+export interface BoardFilterState {
+  status: TaskStatus | "ALL";
+  priority: TaskPriority | "ALL";
+  assigneeId: string | "ALL";
+  assignedBy: string | "ALL";
+  due: "ALL" | "overdue" | "today" | "week" | "none";
+  search: string;
+  page: number;
+}
+
 interface UiState {
   sidebarOpen: boolean;
   commandOpen: boolean;
   activeTaskTab: TaskTab;
   taskFilters: TaskFilterState;
+  boardFilters: BoardFilterState;
 }
 
 export const emptyTaskFilters: TaskFilterState = {
@@ -26,11 +39,22 @@ export const emptyTaskFilters: TaskFilterState = {
   sort: "newest",
 };
 
+export const emptyBoardFilters: BoardFilterState = {
+  status: "ALL",
+  priority: "ALL",
+  assigneeId: "ALL",
+  assignedBy: "ALL",
+  due: "ALL",
+  search: "",
+  page: 1,
+};
+
 const initialState: UiState = {
   sidebarOpen: false,
   commandOpen: false,
   activeTaskTab: "assigned-to-me",
   taskFilters: emptyTaskFilters,
+  boardFilters: emptyBoardFilters,
 };
 
 const uiSlice = createSlice({
@@ -59,6 +83,18 @@ const uiSlice = createSlice({
     resetTaskFilters(state) {
       state.taskFilters = emptyTaskFilters;
     },
+    setBoardFilter(state, action: PayloadAction<Partial<BoardFilterState>>) {
+      // Any filter change invalidates the current page.
+      const resetPage = !("page" in action.payload);
+      state.boardFilters = {
+        ...state.boardFilters,
+        ...action.payload,
+        ...(resetPage ? { page: 1 } : {}),
+      };
+    },
+    resetBoardFilters(state) {
+      state.boardFilters = emptyBoardFilters;
+    },
   },
 });
 
@@ -69,6 +105,8 @@ export const {
   setActiveTaskTab,
   setTaskFilter,
   resetTaskFilters,
+  setBoardFilter,
+  resetBoardFilters,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
