@@ -52,7 +52,7 @@ export function SignInForm() {
   return (
     <div className="mx-auto w-full max-w-[480px] animate-fade-up">
       <div className="text-center">
-        <LogoMark className="mx-auto size-16 rounded-[22px]" />
+        <LogoMark className="mx-auto size-14 rounded-2xl" />
         <h1 className="mt-6 text-[34px] font-bold tracking-tight text-ink">
           TaskFlow Pro
         </h1>

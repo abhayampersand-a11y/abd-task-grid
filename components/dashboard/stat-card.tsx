@@ -1,18 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Tone = "default" | "brand" | "lilac" | "aqua" | "warning" | "success" | "danger";
-
-const TONES: Record<Tone, { icon: string; value: string }> = {
-  default: { icon: "bg-surface-muted text-ink-soft", value: "text-ink" },
-  brand: { icon: "bg-brand-100 text-brand-600", value: "text-ink" },
-  lilac: { icon: "bg-lilac-100 text-lilac-600", value: "text-ink" },
-  aqua: { icon: "bg-aqua-100 text-aqua-700", value: "text-ink" },
-  warning: { icon: "bg-amber-100 text-amber-600", value: "text-ink" },
-  success: { icon: "bg-emerald-100 text-emerald-600", value: "text-ink" },
-  danger: { icon: "bg-brand-600 text-white", value: "text-brand-600" },
-};
-
 export function StatCard({
   label,
   value,
@@ -23,34 +11,34 @@ export function StatCard({
   label: string;
   value: number | string;
   icon: LucideIcon;
-  tone?: Tone;
+  tone?: "default" | "brand" | "warning" | "success" | "danger";
   hint?: string;
 }) {
-  const meta = TONES[tone];
+  const tints = {
+    default: "bg-surface-muted text-ink-soft",
+    brand: "bg-brand-50 text-brand-600",
+    warning: "bg-amber-50 text-amber-600",
+    success: "bg-emerald-50 text-emerald-600",
+    danger: "bg-rose-50 text-rose-600",
+  } as const;
 
   return (
-    <div className="card card-interactive p-4 sm:p-5">
-      <span
-        className={cn(
-          "flex size-10 items-center justify-center rounded-full",
-          meta.icon,
-        )}
-      >
-        <Icon className="size-4.5" />
-      </span>
-
-      <p
-        className={cn(
-          "mt-4 text-[28px] font-bold leading-none tracking-tight",
-          meta.value,
-        )}
-      >
-        {value}
-      </p>
-      <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-faint">
-        {label}
-      </p>
-      {hint && <p className="mt-1 text-[12px] text-ink-muted">{hint}</p>}
+    <div className="card card-interactive p-5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-faint">
+          {label}
+        </p>
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-xl",
+            tints[tone],
+          )}
+        >
+          <Icon className="size-4.5" />
+        </span>
+      </div>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-ink">{value}</p>
+      {hint && <p className="mt-1 text-[12.5px] text-ink-muted">{hint}</p>}
     </div>
   );
 }

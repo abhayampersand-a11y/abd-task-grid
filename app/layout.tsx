@@ -24,12 +24,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e4318e",
+  themeColor: "#4f39f6",
   width: "device-width",
   initialScale: 1,
-  // Content is laid out edge-to-edge on phones; `env(safe-area-inset-*)`
-  // keeps the tab bar clear of the home indicator.
-  viewportFit: "cover",
 };
 
 export default function RootLayout({

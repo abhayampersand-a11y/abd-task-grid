@@ -240,64 +240,7 @@ export function UserManagement() {
           />
         ) : (
           <>
-            {/* Phone: stacked cards. A 7-column table is unusable at 390px. */}
-            <ul className="divide-y divide-line lg:hidden">
-              {users.map((user) => (
-                <li key={user.id} className="flex items-start gap-3 p-4">
-                  <Avatar user={user} size="lg" />
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-[15px] font-bold text-ink">
-                        {user.fullName}
-                      </p>
-                      <UserStatusBadge status={user.status} />
-                    </div>
-                    <p className="mt-0.5 truncate text-[12.5px] text-ink-muted">
-                      {user.email}
-                    </p>
-                    <p className="truncate text-[12.5px] text-ink-muted">
-                      {user.mobile}
-                    </p>
-                    <p className="mt-1.5 text-[11.5px] text-ink-faint">
-                      Joined {formatDate(user.createdAt)} · {user.groupCount}{" "}
-                      group{user.groupCount === 1 ? "" : "s"} · {user.taskCount}{" "}
-                      task{user.taskCount === 1 ? "" : "s"}
-                    </p>
-
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setToggling(user)}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-surface-muted px-3.5 text-[12.5px] font-bold text-ink-soft transition-transform active:scale-95"
-                      >
-                        {user.status === "DISABLED" ? (
-                          <>
-                            <CheckCircle2 className="size-3.5" />
-                            Enable
-                          </>
-                        ) : (
-                          <>
-                            <Ban className="size-3.5" />
-                            Disable
-                          </>
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleting(user)}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-50 px-3.5 text-[12.5px] font-bold text-brand-600 transition-transform active:scale-95"
-                      >
-                        <Trash2 className="size-3.5" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <div className="hidden overflow-x-auto lg:block">
+            <div className="overflow-x-auto">
               <table className="w-full min-w-[840px] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-line bg-surface-muted">

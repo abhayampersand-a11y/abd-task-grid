@@ -10,9 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 
 const CONTROL =
-  "w-full rounded-2xl border border-transparent bg-surface-muted text-sm text-ink transition-all duration-200 " +
+  "w-full rounded-xl border bg-surface-muted text-sm text-ink transition-all duration-200 " +
   "placeholder:text-ink-faint focus:bg-surface focus:border-brand-400 " +
-  "focus:ring-4 focus:ring-brand-500/12 focus:outline-none disabled:opacity-60";
+  "focus:ring-4 focus:ring-brand-500/10 focus:outline-none disabled:opacity-60";
 
 function Shell({
   label,

@@ -17,13 +17,13 @@ export function initials(name: string) {
 
 /** Deterministic avatar tint so a user looks the same everywhere. */
 const AVATAR_TINTS = [
-  "bg-brand-100 text-brand-700",
-  "bg-lilac-100 text-lilac-700",
-  "bg-aqua-100 text-aqua-700",
-  "bg-amber-100 text-amber-700",
+  "bg-indigo-100 text-indigo-700",
   "bg-emerald-100 text-emerald-700",
-  "bg-fuchsia-100 text-fuchsia-700",
+  "bg-amber-100 text-amber-700",
   "bg-rose-100 text-rose-700",
+  "bg-sky-100 text-sky-700",
+  "bg-violet-100 text-violet-700",
+  "bg-teal-100 text-teal-700",
 ];
 
 export function tintFor(seed: string) {
@@ -34,49 +34,39 @@ export function tintFor(seed: string) {
   return AVATAR_TINTS[hash % AVATAR_TINTS.length];
 }
 
-/**
- * Group accents. `solid` is the filled icon tile from the mobile cards,
- * `chip` the soft background, `dot` the small status marker.
- */
 export const GROUP_COLORS: Record<
   string,
-  { chip: string; solid: string; ring: string; dot: string }
+  { chip: string; ring: string; dot: string }
 > = {
   indigo: {
-    chip: "bg-brand-100 text-brand-600",
-    solid: "bg-brand-500 text-white",
-    ring: "ring-brand-200",
-    dot: "bg-brand-500",
-  },
-  violet: {
-    chip: "bg-lilac-100 text-lilac-600",
-    solid: "bg-lilac-500 text-white",
-    ring: "ring-lilac-200",
-    dot: "bg-lilac-500",
-  },
-  sky: {
-    chip: "bg-aqua-100 text-aqua-700",
-    solid: "bg-aqua-500 text-white",
-    ring: "ring-aqua-200",
-    dot: "bg-aqua-500",
+    chip: "bg-indigo-50 text-indigo-600",
+    ring: "ring-indigo-200",
+    dot: "bg-indigo-500",
   },
   emerald: {
-    chip: "bg-emerald-100 text-emerald-700",
-    solid: "bg-emerald-500 text-white",
+    chip: "bg-emerald-50 text-emerald-600",
     ring: "ring-emerald-200",
     dot: "bg-emerald-500",
   },
   amber: {
-    chip: "bg-amber-100 text-amber-700",
-    solid: "bg-amber-500 text-white",
+    chip: "bg-amber-50 text-amber-600",
     ring: "ring-amber-200",
     dot: "bg-amber-500",
   },
   rose: {
-    chip: "bg-rose-100 text-rose-600",
-    solid: "bg-rose-500 text-white",
+    chip: "bg-rose-50 text-rose-600",
     ring: "ring-rose-200",
     dot: "bg-rose-500",
+  },
+  sky: {
+    chip: "bg-sky-50 text-sky-600",
+    ring: "ring-sky-200",
+    dot: "bg-sky-500",
+  },
+  violet: {
+    chip: "bg-violet-50 text-violet-600",
+    ring: "ring-violet-200",
+    dot: "bg-violet-500",
   },
 };
 
@@ -89,24 +79,24 @@ export const PRIORITY_META: Record<
   { label: string; badge: string; dot: string }
 > = {
   LOW: {
-    label: "Low priority",
-    badge: "bg-aqua-100 text-aqua-700",
-    dot: "bg-aqua-500",
+    label: "Low",
+    badge: "bg-slate-100 text-slate-600",
+    dot: "bg-slate-400",
   },
   MEDIUM: {
     label: "Medium",
-    badge: "bg-lilac-100 text-lilac-600",
-    dot: "bg-lilac-500",
+    badge: "bg-sky-50 text-sky-700",
+    dot: "bg-sky-500",
   },
   HIGH: {
-    label: "High priority",
-    badge: "bg-brand-100 text-brand-600",
-    dot: "bg-brand-500",
+    label: "High",
+    badge: "bg-amber-50 text-amber-700",
+    dot: "bg-amber-500",
   },
   URGENT: {
     label: "Urgent",
-    badge: "bg-brand-600 text-white",
-    dot: "bg-white",
+    badge: "bg-rose-50 text-rose-700",
+    dot: "bg-rose-500",
   },
 };
 
@@ -116,28 +106,28 @@ export const STATUS_META: Record<
 > = {
   BACKLOG: {
     label: "Backlog",
-    badge: "bg-surface-muted text-ink-muted",
-    dot: "bg-ink-faint",
+    badge: "bg-slate-100 text-slate-600",
+    dot: "bg-slate-400",
   },
   TODO: {
-    label: "Pending",
-    badge: "bg-surface-muted text-ink-soft",
-    dot: "bg-ink-muted",
+    label: "To Do",
+    badge: "bg-indigo-50 text-indigo-700",
+    dot: "bg-indigo-500",
   },
   IN_PROGRESS: {
-    label: "In progress",
-    badge: "bg-aqua-100 text-aqua-700",
-    dot: "bg-aqua-500",
+    label: "In Progress",
+    badge: "bg-blue-50 text-blue-700",
+    dot: "bg-blue-500",
   },
   IN_REVIEW: {
-    label: "In review",
-    badge: "bg-lilac-100 text-lilac-600",
-    dot: "bg-lilac-500",
+    label: "In Review",
+    badge: "bg-violet-50 text-violet-700",
+    dot: "bg-violet-500",
   },
   COMPLETED: {
-    label: "Done",
-    badge: "bg-brand-100 text-brand-600",
-    dot: "bg-brand-500",
+    label: "Completed",
+    badge: "bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-500",
   },
 };
 

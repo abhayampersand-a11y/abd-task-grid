@@ -3,14 +3,14 @@ import type { ActivityDto, ActivityType } from "@/lib/types";
 
 const DOT: Record<ActivityType, string> = {
   TASK_CREATED: "bg-brand-500",
-  STATUS_CHANGED: "bg-aqua-500",
+  STATUS_CHANGED: "bg-sky-500",
   PRIORITY_CHANGED: "bg-amber-500",
   PROGRESS_UPDATED: "bg-emerald-500",
-  ASSIGNEE_CHANGED: "bg-lilac-500",
-  DUE_DATE_CHANGED: "bg-brand-600",
+  ASSIGNEE_CHANGED: "bg-violet-500",
+  DUE_DATE_CHANGED: "bg-rose-500",
   DESCRIPTION_UPDATED: "bg-ink-faint",
-  COMMENT_ADDED: "bg-lilac-500",
-  ATTACHMENT_ADDED: "bg-aqua-600",
+  COMMENT_ADDED: "bg-violet-500",
+  ATTACHMENT_ADDED: "bg-teal-500",
   MEMBER_ADDED: "bg-brand-400",
   GROUP_CREATED: "bg-brand-500",
 };
