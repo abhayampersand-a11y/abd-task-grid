@@ -89,6 +89,7 @@ export function SignUpForm() {
           <InputField
             label="EMAIL ADDRESS"
             type="email"
+            inputMode="email"
             placeholder="name@company.com"
             autoComplete="email"
             icon={<Mail />}
@@ -100,6 +101,7 @@ export function SignUpForm() {
           <InputField
             label="MOBILE NUMBER"
             type="tel"
+            inputMode="tel"
             placeholder="+1 (555) 000-0000"
             autoComplete="tel"
             icon={<Smartphone />}

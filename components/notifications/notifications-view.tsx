@@ -126,7 +126,8 @@ export function NotificationsView() {
                     type="button"
                     onClick={() => remove(item.id)}
                     aria-label="Dismiss notification"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-faint opacity-0 transition-all hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 group-hover:opacity-100"
+                    // Always visible on touch — `group-hover` never fires there.
+                    className="flex size-11 shrink-0 items-center justify-center rounded-lg text-ink-faint transition-all active:bg-rose-50 active:text-rose-600 hover:bg-rose-50 hover:text-rose-600 lg:size-9 lg:opacity-0 lg:focus-visible:opacity-100 lg:group-hover:opacity-100"
                   >
                     <Trash2 className="size-4" />
                   </button>

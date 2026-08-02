@@ -39,6 +39,7 @@
 
   --animate-fade-up: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-scale-in: scale-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-sheet-up: sheet-up 0.26s cubic-bezier(0.16, 1, 0.3, 1);
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 }
 
@@ -64,6 +65,15 @@
   }
 }
 
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
 @keyframes shimmer {
   0%,
   100% {
@@ -81,6 +91,8 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* Kills the 300ms double-tap delay without disabling pinch zoom. */
+    touch-action: manipulation;
   }
 
   body {
@@ -89,6 +101,27 @@
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
+    /* No grey flash on tap; components supply their own :active state. */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  /* iOS Safari zooms the viewport when a focused input is under 16px. */
+  @media (max-width: 1023px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* Touch devices get no hover lift — it sticks after a tap. */
+  @media (hover: none) {
+    .card-interactive:hover {
+      border-color: var(--color-line);
+      box-shadow: var(--shadow-soft);
+      transform: none;
+    }
   }
 
   ::selection {
@@ -122,6 +155,23 @@
     border-color: var(--color-line-strong);
     box-shadow: var(--shadow-raise);
     transform: translateY(-2px);
+  }
+
+  /* Clears the fixed tab bar plus the iOS home indicator. */
+  .pb-tabbar {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 1024px) {
+    .pb-tabbar {
+      padding-bottom: 2.5rem;
+    }
+  }
+
+  /* Panels inside a sheet shouldn't drag the page behind them. */
+  .scroll-contain {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

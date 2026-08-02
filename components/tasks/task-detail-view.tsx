@@ -250,13 +250,14 @@ export function TaskDetailView({ taskId }: { taskId: string }) {
                 Attachments
               </h2>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {/* Horizontal snap strip on phones, grid from `sm` up. */}
+              <div className="no-scrollbar scroll-contain -mx-6 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0">
                 {task.attachments.map((file) => {
                   const isImage = file.mimeType.startsWith("image/");
                   return (
                     <div
                       key={file.id}
-                      className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted p-3"
+                      className="flex w-[78%] shrink-0 snap-start items-center gap-3 rounded-xl border border-line bg-surface-muted p-3 sm:w-auto sm:shrink"
                     >
                       <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-ink-muted ring-1 ring-line">
                         {isImage ? (
@@ -325,10 +326,10 @@ export function TaskDetailView({ taskId }: { taskId: string }) {
                 }}
                 rows={3}
                 placeholder="Write a comment…"
-                className="w-full resize-none bg-transparent text-[13.5px] text-ink placeholder:text-ink-faint focus:outline-none"
+                className="w-full resize-none bg-transparent text-ink placeholder:text-ink-faint focus:outline-none lg:text-[13.5px]"
               />
               <div className="flex items-center justify-between gap-3 pt-2">
-                <p className="text-[11.5px] text-ink-faint">
+                <p className="hidden text-[11.5px] text-ink-faint lg:block">
                   Press ⌘/Ctrl + Enter to post
                 </p>
                 <Button
@@ -337,6 +338,7 @@ export function TaskDetailView({ taskId }: { taskId: string }) {
                   loading={posting}
                   disabled={!comment.trim()}
                   icon={<Send className="size-3.5" />}
+                  className="ml-auto"
                 >
                   Comment
                 </Button>

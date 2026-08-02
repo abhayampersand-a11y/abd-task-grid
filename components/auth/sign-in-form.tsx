@@ -66,6 +66,7 @@ export function SignInForm() {
           <InputField
             label="Email or Mobile Number"
             placeholder="name@company.com"
+            inputMode="email"
             autoComplete="username"
             icon={<AtSign />}
             value={values.identifier}

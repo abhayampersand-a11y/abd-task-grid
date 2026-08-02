@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CirclePlus, Plus, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, Fab } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyGroupsIllustration } from "@/components/ui/illustrations";
 import { PageHeader } from "@/components/ui/page-header";
@@ -139,6 +139,12 @@ export function GroupsView() {
           </section>
         </>
       )}
+
+      <Fab
+        onClick={() => setCreateOpen(true)}
+        label="Create a new group"
+        icon={<Plus className="size-7" />}
+      />
 
       <CreateGroupModal
         open={createOpen}

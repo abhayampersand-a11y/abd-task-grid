@@ -77,3 +77,32 @@ export function Button({
     </button>
   );
 }
+
+/**
+ * Floating action button — phones only, sits clear of the tab bar. Always
+ * duplicates an action that already exists elsewhere on the screen.
+ */
+export function Fab({
+  onClick,
+  label,
+  icon,
+}: {
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={cn(
+        "fixed right-4 z-30 flex size-14 items-center justify-center rounded-full lg:hidden",
+        "bg-brand-600 text-white shadow-float transition-transform active:scale-95",
+      )}
+      style={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom))" }}
+    >
+      {icon}
+    </button>
+  );
+}

@@ -61,12 +61,21 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative flex max-h-[92vh] w-full flex-col overflow-hidden bg-surface shadow-overlay animate-scale-in",
-          "rounded-t-2xl sm:rounded-2xl",
+          // Bottom sheet on phones, centred dialog from `sm` up.
+          "relative flex w-full flex-col overflow-hidden bg-surface shadow-overlay",
+          "max-h-[92dvh] rounded-t-3xl animate-sheet-up",
+          "sm:max-h-[92vh] sm:rounded-2xl sm:animate-scale-in",
           WIDTHS[width],
         )}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+        {/* Drag-handle affordance — sheets read as draggable even though
+            dismissal is via the backdrop or the close button. */}
+        <span
+          className="mx-auto mt-2.5 h-1 w-10 shrink-0 rounded-full bg-line-strong sm:hidden"
+          aria-hidden
+        />
+
+        <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6 sm:py-5">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold tracking-tight text-ink">
               {title}
@@ -86,12 +95,18 @@ export function Modal({
           </Button>
         </header>
 
-        <div className="thin-scrollbar flex-1 overflow-y-auto px-6 py-5">
+        <div className="thin-scrollbar scroll-contain flex-1 overflow-y-auto px-5 py-5 sm:px-6">
           {children}
         </div>
 
         {footer && (
-          <footer className="flex flex-col-reverse gap-2 border-t border-line bg-surface-muted px-6 py-4 sm:flex-row sm:justify-end">
+          <footer
+            className={cn(
+              "flex flex-col-reverse gap-2 border-t border-line bg-surface-muted px-5 py-4 sm:flex-row sm:justify-end sm:px-6",
+              // Keep the primary action clear of the home indicator.
+              "pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4",
+            )}
+          >
             {footer}
           </footer>
         )}

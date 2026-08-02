@@ -8,16 +8,18 @@ import {
   ClipboardList,
   Plus,
   Settings,
+  SlidersHorizontal,
   UsersRound,
 } from "lucide-react";
 import { AvatarGroup } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, Fab } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyTasksIllustration } from "@/components/ui/illustrations";
 import { PageHeader } from "@/components/ui/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { CardSkeleton } from "@/components/ui/skeleton";
 import { Tabs } from "@/components/ui/tabs";
-import { ConfirmDialog } from "@/components/ui/modal";
+import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { AssignTaskModal } from "@/components/tasks/assign-task-modal";
 import { EditTaskModal } from "@/components/tasks/edit-task-modal";
 import { TaskCard } from "@/components/tasks/task-card";
@@ -41,6 +43,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [editing, setEditing] = useState<TaskSummary | null>(null);
   const [deleting, setDeleting] = useState<TaskSummary | null>(null);
 
@@ -96,6 +99,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const group = groupData.group;
   const tasks = tasksData?.tasks ?? [];
   const assigners = group.allMembers.map((member) => member.user);
+  const activeFilterCount =
+    (filters.status !== "ALL" ? 1 : 0) +
+    (filters.priority !== "ALL" ? 1 : 0) +
+    (filters.assignedBy !== "ALL" ? 1 : 0) +
+    (filters.sort !== "newest" ? 1 : 0);
 
   async function confirmDelete() {
     if (!deleting) return;
@@ -193,39 +201,77 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs
-        items={[
-          {
-            value: "assigned-to-me" as const,
-            label: "Tasks assigned to me",
-            count: toMe?.tasks.length ?? 0,
-          },
-          {
-            value: "assigned-by-me" as const,
-            label: "Tasks assigned by me",
-            count: byMe?.tasks.length ?? 0,
-          },
-        ]}
-        value={tab}
-        onChange={(value) => dispatch(setActiveTaskTab(value))}
-        trailing={
-          tab === "assigned-by-me" ? (
-            <Button
-              size="sm"
-              icon={<Plus className="size-4" />}
-              onClick={() => setAssignOpen(true)}
-            >
-              Assign New Task
-            </Button>
-          ) : undefined
-        }
-      />
+      {/* Tabs — segmented control on phones, underlined tabs on desktop */}
+      <div className="lg:hidden">
+        <Segmented
+          items={[
+            {
+              value: "assigned-to-me" as const,
+              label: "Assigned to me",
+              count: toMe?.tasks.length ?? 0,
+            },
+            {
+              value: "assigned-by-me" as const,
+              label: "Assigned by me",
+              count: byMe?.tasks.length ?? 0,
+            },
+          ]}
+          value={tab}
+          onChange={(value) => dispatch(setActiveTaskTab(value))}
+        />
+      </div>
 
-      <TaskFilters
-        people={assigners}
-        showAssignedBy={tab === "assigned-to-me"}
-      />
+      <div className="hidden lg:block">
+        <Tabs
+          items={[
+            {
+              value: "assigned-to-me" as const,
+              label: "Tasks assigned to me",
+              count: toMe?.tasks.length ?? 0,
+            },
+            {
+              value: "assigned-by-me" as const,
+              label: "Tasks assigned by me",
+              count: byMe?.tasks.length ?? 0,
+            },
+          ]}
+          value={tab}
+          onChange={(value) => dispatch(setActiveTaskTab(value))}
+          trailing={
+            tab === "assigned-by-me" ? (
+              <Button
+                size="sm"
+                icon={<Plus className="size-4" />}
+                onClick={() => setAssignOpen(true)}
+              >
+                Assign New Task
+              </Button>
+            ) : undefined
+          }
+        />
+      </div>
+
+      {/* Filters — inline on desktop, sheet on phones */}
+      <div className="hidden lg:block">
+        <TaskFilters
+          people={assigners}
+          showAssignedBy={tab === "assigned-to-me"}
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setFiltersOpen(true)}
+        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-[13px] font-semibold text-ink-soft active:bg-surface-muted lg:hidden"
+      >
+        <SlidersHorizontal className="size-4" />
+        Filter &amp; sort
+        {activeFilterCount > 0 && (
+          <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white">
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
 
       {isFetching && tasks.length === 0 ? (
         <CardSkeleton />
@@ -291,6 +337,32 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         message={`"${deleting?.title ?? ""}" and all of its comments, attachments and history will be permanently removed.`}
         confirmLabel="Delete task"
       />
+
+      <Fab
+        onClick={() => setAssignOpen(true)}
+        label="Assign a new task"
+        icon={<Plus className="size-7" />}
+      />
+
+      {/* Mobile filter sheet — same Redux state as the desktop bar */}
+      <Modal
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filter &amp; sort"
+        description="Narrow this group's tasks down."
+        width="sm"
+        footer={
+          <Button className="w-full" onClick={() => setFiltersOpen(false)}>
+            Show results
+          </Button>
+        }
+      >
+        <TaskFilters
+          people={assigners}
+          showAssignedBy={tab === "assigned-to-me"}
+          stacked
+        />
+      </Modal>
 
       <GroupSettingsModal
         open={settingsOpen}

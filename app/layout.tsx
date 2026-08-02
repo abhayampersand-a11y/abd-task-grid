@@ -27,6 +27,9 @@ export const viewport: Viewport = {
   themeColor: "#4f39f6",
   width: "device-width",
   initialScale: 1,
+  // Content runs edge-to-edge; `env(safe-area-inset-*)` keeps the tab bar and
+  // sheet footers clear of the notch and home indicator.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

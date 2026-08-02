@@ -1,7 +1,13 @@
 "use client";
 
 import { RotateCcw, Search } from "lucide-react";
-import { PRIORITY_META, PRIORITY_ORDER, STATUS_META, STATUS_ORDER } from "@/lib/utils";
+import {
+  cn,
+  PRIORITY_META,
+  PRIORITY_ORDER,
+  STATUS_META,
+  STATUS_ORDER,
+} from "@/lib/utils";
 import type { UserSummary } from "@/lib/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { resetTaskFilters, setTaskFilter } from "@/store/ui-slice";
@@ -16,9 +22,12 @@ export function TaskFilters({
   /** Populates the "assigned by" select — omitted on the "assigned by me" tab. */
   people,
   showAssignedBy = true,
+  /** Full-width stacked layout, used inside the mobile filter sheet. */
+  stacked = false,
 }: {
   people: UserSummary[];
   showAssignedBy?: boolean;
+  stacked?: boolean;
 }) {
   const dispatch = useAppDispatch();
   const filters = useAppSelector((state) => state.ui.taskFilters);
@@ -30,9 +39,21 @@ export function TaskFilters({
     filters.search !== "" ||
     filters.sort !== "newest";
 
+  // In stacked mode every control fills the row and gets a visible label.
+  const field = stacked ? "h-12 w-full text-base" : "";
+
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      <div className="relative min-w-48 flex-1 sm:max-w-64">
+    <div
+      className={cn(
+        stacked ? "flex flex-col gap-4" : "flex flex-wrap items-center gap-2.5",
+      )}
+    >
+      <div
+        className={cn(
+          "relative",
+          stacked ? "w-full" : "min-w-48 flex-1 sm:max-w-64",
+        )}
+      >
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
         <input
           value={filters.search}
@@ -41,7 +62,10 @@ export function TaskFilters({
           }
           placeholder="Search tasks…"
           aria-label="Search tasks"
-          className="h-10 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 focus:outline-none"
+          className={cn(
+            "w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-ink placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 focus:outline-none",
+            stacked ? "h-12 text-base" : "h-10 text-[13px]",
+          )}
         />
       </div>
 
@@ -55,7 +79,7 @@ export function TaskFilters({
           )
         }
         aria-label="Filter by status"
-        className={SELECT}
+        className={cn(SELECT, field)}
       >
         <option value="ALL">All statuses</option>
         {STATUS_ORDER.map((status) => (
@@ -75,7 +99,7 @@ export function TaskFilters({
           )
         }
         aria-label="Filter by priority"
-        className={SELECT}
+        className={cn(SELECT, field)}
       >
         <option value="ALL">All priorities</option>
         {PRIORITY_ORDER.map((priority) => (
@@ -92,7 +116,7 @@ export function TaskFilters({
             dispatch(setTaskFilter({ assignedBy: event.target.value }))
           }
           aria-label="Filter by who assigned the task"
-          className={SELECT}
+          className={cn(SELECT, field)}
         >
           <option value="ALL">Assigned by anyone</option>
           {people.map((person) => (
@@ -111,7 +135,7 @@ export function TaskFilters({
           )
         }
         aria-label="Sort tasks"
-        className={SELECT}
+        className={cn(SELECT, field)}
       >
         <option value="newest">Newest first</option>
         <option value="oldest">Oldest first</option>

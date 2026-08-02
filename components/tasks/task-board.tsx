@@ -18,11 +18,11 @@ import {
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { PriorityBadge, StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, Fab } from "@/components/ui/button";
 import { Dropdown, DropdownItem, DropdownLabel } from "@/components/ui/dropdown";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyTasksIllustration } from "@/components/ui/illustrations";
-import { ConfirmDialog } from "@/components/ui/modal";
+import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { Pagination } from "@/components/ui/pagination";
 import { RowSkeleton, StatSkeleton } from "@/components/ui/skeleton";
 import { AssignTaskModal } from "@/components/tasks/assign-task-modal";
@@ -81,6 +81,7 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
   const [sort, setSort] = useState<string>("newest");
   const [searchDraft, setSearchDraft] = useState(filters.search);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [editing, setEditing] = useState<TaskSummary | null>(null);
   const [deleting, setDeleting] = useState<TaskSummary | null>(null);
 
@@ -124,13 +125,14 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
   const tasks = data?.tasks ?? [];
   const roster = people.length > 0 ? people : (directory?.users ?? []);
 
-  const dirty =
-    filters.status !== "ALL" ||
-    filters.priority !== "ALL" ||
-    filters.assigneeId !== "ALL" ||
-    filters.assignedBy !== "ALL" ||
-    filters.due !== "ALL" ||
-    filters.search !== "";
+  const activeCount =
+    (filters.status !== "ALL" ? 1 : 0) +
+    (filters.priority !== "ALL" ? 1 : 0) +
+    (filters.assigneeId !== "ALL" ? 1 : 0) +
+    (filters.assignedBy !== "ALL" ? 1 : 0) +
+    (filters.due !== "ALL" ? 1 : 0);
+
+  const dirty = activeCount > 0 || filters.search !== "";
 
   async function confirmDelete() {
     if (!deleting) return;
@@ -154,19 +156,19 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-[38px] sm:leading-tight">
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink sm:text-3xl lg:text-[38px] lg:leading-tight">
             Tasks
           </h1>
-          <p className="mt-1.5 text-[15px] text-ink-muted">
+          <p className="mt-1.5 text-[14px] text-ink-muted sm:text-[15px]">
             View and manage all tasks across your groups.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Desktop actions — on phones the FAB creates and the Filter
+            button below opens the sheet. */}
+        <div className="hidden items-center gap-2 lg:flex">
           <div className="flex items-center rounded-xl bg-surface-muted p-1">
-            <FilterMenu
-              onChange={(patch) => dispatch(setBoardFilter(patch))}
-            />
+            <FilterMenu onChange={(patch) => dispatch(setBoardFilter(patch))} />
             <SortMenu value={sort} onChange={setSort} />
           </div>
 
@@ -215,8 +217,35 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
         </section>
       )}
 
+      {/* Filter trigger — phones get a sheet, desktop the inline bar */}
+      <div className="flex items-center gap-2.5 lg:hidden">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+          <input
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
+            placeholder="Search tasks…"
+            aria-label="Search tasks"
+            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-ink placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 focus:outline-none"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-[13px] font-semibold text-ink-soft active:bg-surface-muted"
+        >
+          <ListFilter className="size-4" />
+          Filter
+          {activeCount > 0 && (
+            <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white">
+              {activeCount}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Filter bar */}
-      <section className="card flex flex-wrap items-center gap-2.5 p-3">
+      <section className="card hidden flex-wrap items-center gap-2.5 p-3 lg:flex">
         <div className="relative min-w-44 flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
           <input
@@ -574,6 +603,110 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
         )}
       </section>
 
+      <Fab
+        onClick={() => setAssignOpen(true)}
+        label="Create a task"
+        icon={<Plus className="size-7" />}
+      />
+
+      {/* Mobile filter sheet — same Redux state as the desktop bar */}
+      <Modal
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filter tasks"
+        description="Narrow the list down to what you need."
+        width="sm"
+        footer={
+          <>
+            {dirty && (
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={clearAll}
+              >
+                Clear all
+              </Button>
+            )}
+            <Button
+              className="w-full sm:w-auto"
+              onClick={() => setFiltersOpen(false)}
+            >
+              Show results
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <SheetSelect
+            label="Status"
+            value={filters.status}
+            options={[
+              { value: "ALL", label: "All statuses" },
+              ...STATUS_ORDER.map((s) => ({
+                value: s,
+                label: STATUS_META[s].label,
+              })),
+            ]}
+            onChange={(value) =>
+              dispatch(
+                setBoardFilter({ status: value as typeof filters.status }),
+              )
+            }
+          />
+          <SheetSelect
+            label="Priority"
+            value={filters.priority}
+            options={[
+              { value: "ALL", label: "All priorities" },
+              ...PRIORITY_ORDER.map((p) => ({
+                value: p,
+                label: PRIORITY_META[p].label,
+              })),
+            ]}
+            onChange={(value) =>
+              dispatch(
+                setBoardFilter({ priority: value as typeof filters.priority }),
+              )
+            }
+          />
+          <SheetSelect
+            label="Assigned to"
+            value={filters.assigneeId}
+            options={[
+              { value: "ALL", label: "Anyone" },
+              ...roster.map((p) => ({ value: p.id, label: p.fullName })),
+            ]}
+            onChange={(value) => dispatch(setBoardFilter({ assigneeId: value }))}
+          />
+          <SheetSelect
+            label="Assigned by"
+            value={filters.assignedBy}
+            options={[
+              { value: "ALL", label: "Anyone" },
+              ...roster.map((p) => ({ value: p.id, label: p.fullName })),
+            ]}
+            onChange={(value) => dispatch(setBoardFilter({ assignedBy: value }))}
+          />
+          <SheetSelect
+            label="Due date"
+            value={filters.due}
+            options={DUE_OPTIONS.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
+            onChange={(value) =>
+              dispatch(setBoardFilter({ due: value as typeof filters.due }))
+            }
+          />
+          <SheetSelect
+            label="Sort by"
+            value={sort}
+            options={SORTS.map((o) => ({ value: o.value, label: o.label }))}
+            onChange={setSort}
+          />
+        </div>
+      </Modal>
+
       <AssignTaskModal open={assignOpen} onClose={() => setAssignOpen(false)} />
 
       {editing && (
@@ -594,6 +727,39 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
         message={`"${deleting?.title ?? ""}" and all of its comments, attachments and history will be permanently removed.`}
         confirmLabel="Delete task"
       />
+    </div>
+  );
+}
+
+/** Full-width labelled select, used inside the mobile filter sheet. */
+function SheetSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <span className="mb-1.5 block text-[13px] font-medium text-ink-soft">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        aria-label={label}
+        className="h-12 w-full cursor-pointer appearance-none rounded-xl border border-line bg-surface-muted px-3.5 pr-10 text-ink focus:border-brand-400 focus:bg-surface focus:ring-4 focus:ring-brand-500/10 focus:outline-none bg-[length:16px] bg-[right_0.9rem_center] bg-no-repeat bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke-width=%222%22 stroke=%22%23767c92%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m19.5 8.25-7.5 7.5-7.5-7.5%22/></svg>')]"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
