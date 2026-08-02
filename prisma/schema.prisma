@@ -31,6 +31,12 @@ enum GroupRole {
   MEMBER
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 enum TaskPriority {
   LOW
   MEDIUM
@@ -82,7 +88,9 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  memberships     GroupMember[]
+  memberships         GroupMember[]
+  invitesReceived     GroupInvitation[] @relation("InvitationInvitee")
+  invitesSent         GroupInvitation[] @relation("InvitationInvitedBy")
   groupsCreated   Group[]          @relation("GroupCreatedBy")
   tasksAssigned   Task[]           @relation("TaskAssignee")
   tasksCreated    Task[]           @relation("TaskCreatedBy")
@@ -106,10 +114,11 @@ model Group {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  createdBy  User          @relation("GroupCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
-  members    GroupMember[]
-  tasks      Task[]
-  activities Activity[]
+  createdBy   User              @relation("GroupCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  invitations GroupInvitation[]
+  tasks       Task[]
+  activities  Activity[]
 
   @@index([createdById])
   @@index([createdAt])
@@ -127,6 +136,30 @@ model GroupMember {
 
   @@unique([groupId, userId])
   @@index([userId])
+}
+
+/**
+ * A join request the owner sends to one user. Membership is only created when
+ * the invitee accepts, so `GroupMember` still means "actually in the group".
+ * One row per (group, user) — re-inviting somebody who declined flips the same
+ * row back to PENDING rather than piling up history.
+ */
+model GroupInvitation {
+  id          String           @id @default(cuid())
+  groupId     String
+  inviteeId   String
+  invitedById String
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitee   User  @relation("InvitationInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  invitedBy User  @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, inviteeId])
+  @@index([inviteeId, status])
+  @@index([groupId, status])
 }
 
 model Task {

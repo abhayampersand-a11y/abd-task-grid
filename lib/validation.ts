@@ -65,6 +65,15 @@ export const updateGroupSchema = createGroupSchema.partial().omit({
   memberIds: true,
 });
 
+/** `memberIds` on a group are invitations — nobody joins without accepting. */
+export const inviteMembersSchema = z.object({
+  memberIds: z.array(z.string()).min(1, "Invite at least one person."),
+});
+
+export const invitationResponseSchema = z.object({
+  action: z.enum(["ACCEPT", "DECLINE"]),
+});
+
 export const taskPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
 export const taskStatusEnum = z.enum([
   "BACKLOG",
@@ -142,6 +151,10 @@ export const changePasswordSchema = z
 export const adminUserActionSchema = z.object({
   status: z.enum(["ACTIVE", "DISABLED"]),
 });
+
+export type InvitationAction = z.infer<
+  typeof invitationResponseSchema
+>["action"];
 
 export type SignUpInput = z.input<typeof signUpSchema>;
 export type SignInInput = z.input<typeof signInSchema>;

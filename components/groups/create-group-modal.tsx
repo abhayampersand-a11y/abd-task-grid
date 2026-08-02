@@ -9,8 +9,9 @@ import { Modal } from "@/components/ui/modal";
 import { fromApiFieldErrors, validate, type FieldErrors } from "@/lib/form";
 import { createGroupSchema } from "@/lib/validation";
 import { cn, GROUP_COLORS, groupColor } from "@/lib/utils";
+import type { UserSummary } from "@/lib/types";
 import { toApiError, useCreateGroupMutation } from "@/store/api";
-import { MemberPicker } from "./member-picker";
+import { MemberInviteSearch } from "./member-invite-search";
 
 const COLOR_KEYS = Object.keys(GROUP_COLORS);
 
@@ -29,7 +30,7 @@ export function CreateGroupModal({
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
   const [colorKey, setColorKey] = useState("indigo");
-  const [memberIds, setMemberIds] = useState<string[]>([]);
+  const [invited, setInvited] = useState<UserSummary[]>([]);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   function reset() {
@@ -37,7 +38,7 @@ export function CreateGroupModal({
     setDescription("");
     setVisibility("PRIVATE");
     setColorKey("indigo");
-    setMemberIds([]);
+    setInvited([]);
     setErrors({});
   }
 
@@ -47,7 +48,13 @@ export function CreateGroupModal({
   }
 
   async function submit() {
-    const payload = { name, description, visibility, colorKey, memberIds };
+    const payload = {
+      name,
+      description,
+      visibility,
+      colorKey,
+      memberIds: invited.map((user) => user.id),
+    };
 
     const result = validate(createGroupSchema, payload);
     if (!result.ok) {
@@ -56,9 +63,11 @@ export function CreateGroupModal({
     }
 
     try {
-      const { group } = await createGroup(payload).unwrap();
+      const { group, invited: sent } = await createGroup(payload).unwrap();
       toast.success("Group created", {
-        description: `"${group.name}" is ready. You are the owner.`,
+        description: sent
+          ? `"${group.name}" is ready. ${sent} invitation${sent === 1 ? "" : "s"} sent — they join once they accept.`
+          : `"${group.name}" is ready. You are the owner.`,
       });
       onCreated?.(group.id);
       close();
@@ -187,27 +196,29 @@ export function CreateGroupModal({
           <header className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <UserPlus className="size-4.5 text-brand-600" />
-              <h3 className="text-[15px] font-semibold text-ink">Add Members</h3>
+              <h3 className="text-[15px] font-semibold text-ink">
+                Invite Members
+              </h3>
             </div>
             <span className="rounded-full bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-brand-500">
-              {memberIds.length} Selected
+              {invited.length} Invited
             </span>
           </header>
 
-          <MemberPicker
-            selected={memberIds}
-            onToggle={(userId) =>
-              setMemberIds((current) =>
-                current.includes(userId)
-                  ? current.filter((id) => id !== userId)
-                  : [...current, userId],
+          <MemberInviteSearch
+            invited={invited}
+            onInvite={(user) => setInvited((current) => [...current, user])}
+            onRemove={(userId) =>
+              setInvited((current) =>
+                current.filter((user) => user.id !== userId),
               )
             }
           />
 
           <p className="text-[12.5px] leading-relaxed text-ink-muted">
-            You are added automatically as the group owner. Members can be
-            invited or removed at any time from the group settings.
+            You are added automatically as the group owner. Everybody else gets
+            a join request they can accept or decline — they appear in the group
+            only after accepting.
           </p>
         </section>
       </div>

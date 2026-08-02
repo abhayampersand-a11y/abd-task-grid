@@ -3,23 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Crown, Trash2, UserMinus, UserPlus } from "lucide-react";
+import { Clock, Crown, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InputField, TextareaField } from "@/components/ui/field";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { Tabs } from "@/components/ui/tabs";
-import type { GroupDetail } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import type { GroupDetail, UserSummary } from "@/lib/types";
+import { formatDate, relativeTime } from "@/lib/utils";
 import {
   toApiError,
-  useAddGroupMembersMutation,
+  useCancelInvitationMutation,
   useDeleteGroupMutation,
+  useInviteGroupMembersMutation,
   useRemoveGroupMemberMutation,
   useUpdateGroupMutation,
 } from "@/store/api";
-import { MemberPicker } from "./member-picker";
+import { MemberInviteSearch } from "./member-invite-search";
 
 type Pane = "details" | "members" | "danger";
 
@@ -38,17 +39,19 @@ export function GroupSettingsModal({
   const [pane, setPane] = useState<Pane>("details");
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description ?? "");
-  const [newMemberIds, setNewMemberIds] = useState<string[]>([]);
+  const [invited, setInvited] = useState<UserSummary[]>([]);
   const [removing, setRemoving] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [updateGroup, { isLoading: saving }] = useUpdateGroupMutation();
-  const [addMembers, { isLoading: adding }] = useAddGroupMembersMutation();
+  const [inviteMembers, { isLoading: inviting }] =
+    useInviteGroupMembersMutation();
+  const [cancelInvitation] = useCancelInvitationMutation();
   const [removeMember, { isLoading: removingMember }] =
     useRemoveGroupMemberMutation();
   const [deleteGroup, { isLoading: deleting }] = useDeleteGroupMutation();
 
-  const existingIds = group.allMembers.map((member) => member.user.id);
+  const pending = group.pendingInvitations ?? [];
 
   async function saveDetails() {
     try {
@@ -59,15 +62,27 @@ export function GroupSettingsModal({
     }
   }
 
-  async function inviteMembers() {
-    if (newMemberIds.length === 0) return;
+  async function sendInvites() {
+    if (invited.length === 0) return;
     try {
-      const { added } = await addMembers({
+      const { invited: sent } = await inviteMembers({
         groupId: group.id,
-        memberIds: newMemberIds,
+        memberIds: invited.map((user) => user.id),
       }).unwrap();
-      toast.success(`${added} member${added === 1 ? "" : "s"} added`);
-      setNewMemberIds([]);
+      toast.success(
+        `${sent} invitation${sent === 1 ? "" : "s"} sent`,
+        { description: "They join the group once they accept the request." },
+      );
+      setInvited([]);
+    } catch (error) {
+      toast.error(toApiError(error).message);
+    }
+  }
+
+  async function withdraw(invitationId: string) {
+    try {
+      await cancelInvitation({ invitationId, groupId: group.id }).unwrap();
+      toast.success("Invitation withdrawn");
     } catch (error) {
       toast.error(toApiError(error).message);
     }
@@ -126,13 +141,13 @@ export function GroupSettingsModal({
                 Close
               </Button>
               <Button
-                onClick={inviteMembers}
-                loading={adding}
-                disabled={newMemberIds.length === 0}
+                onClick={sendInvites}
+                loading={inviting}
+                disabled={invited.length === 0}
                 icon={<UserPlus className="size-4" />}
               >
-                Add {newMemberIds.length || ""} member
-                {newMemberIds.length === 1 ? "" : "s"}
+                Send {invited.length || ""} invitation
+                {invited.length === 1 ? "" : "s"}
               </Button>
             </>
           ) : (
@@ -213,20 +228,63 @@ export function GroupSettingsModal({
               </ul>
             </div>
 
+            {isOwner && pending.length > 0 && (
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
+                  Awaiting a response ({pending.length})
+                </h3>
+                <ul className="mt-3 divide-y divide-line rounded-xl border border-line">
+                  {pending.map((invitation) => (
+                    <li
+                      key={invitation.id}
+                      className="flex items-center gap-3 px-4 py-3"
+                    >
+                      <Avatar user={invitation.invitee} size="md" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-semibold text-ink">
+                          {invitation.invitee.fullName}
+                        </p>
+                        <p className="truncate text-[12.5px] text-ink-muted">
+                          {invitation.invitee.email} ·{" "}
+                          {relativeTime(invitation.createdAt)}
+                        </p>
+                      </div>
+                      <Badge
+                        className="bg-amber-50 text-amber-700"
+                        dot="bg-amber-500"
+                      >
+                        <Clock className="size-3" />
+                        Pending
+                      </Badge>
+                      <button
+                        type="button"
+                        onClick={() => withdraw(invitation.id)}
+                        aria-label={`Withdraw invitation to ${invitation.invitee.fullName}`}
+                        className="flex size-9 items-center justify-center rounded-lg text-ink-faint transition-colors hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <UserMinus className="size-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {isOwner && (
               <div>
                 <h3 className="text-[13px] font-semibold uppercase tracking-wide text-ink-faint">
-                  Add more members
+                  Invite by email
                 </h3>
                 <div className="mt-3">
-                  <MemberPicker
-                    selected={newMemberIds}
-                    excludeIds={existingIds}
-                    onToggle={(userId) =>
-                      setNewMemberIds((current) =>
-                        current.includes(userId)
-                          ? current.filter((id) => id !== userId)
-                          : [...current, userId],
+                  <MemberInviteSearch
+                    groupId={group.id}
+                    invited={invited}
+                    onInvite={(user) =>
+                      setInvited((current) => [...current, user])
+                    }
+                    onRemove={(userId) =>
+                      setInvited((current) =>
+                        current.filter((user) => user.id !== userId),
                       )
                     }
                   />

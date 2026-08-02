@@ -15,6 +15,7 @@ import {
   Search,
   Timer,
   TriangleAlert,
+  X,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { PriorityBadge, StatusBadge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { RowSkeleton, StatSkeleton } from "@/components/ui/skeleton";
 import { AssignTaskModal } from "@/components/tasks/assign-task-modal";
 import { EditTaskModal } from "@/components/tasks/edit-task-modal";
+import { TaskListRow } from "@/components/tasks/task-card";
 import {
   cn,
   formatShortDate,
@@ -82,6 +84,7 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
   const [searchDraft, setSearchDraft] = useState(filters.search);
   const [assignOpen, setAssignOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [editing, setEditing] = useState<TaskSummary | null>(null);
   const [deleting, setDeleting] = useState<TaskSummary | null>(null);
 
@@ -164,8 +167,45 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
           </p>
         </div>
 
-        {/* Desktop actions — on phones the FAB creates and the Filter
-            button below opens the sheet. */}
+        {/* Phone actions — icons only, so the list starts higher up the page.
+            Creating is handled by the FAB. */}
+        <div className="flex shrink-0 items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setSearchOpen((open) => !open)}
+            aria-label="Search tasks"
+            aria-expanded={searchOpen}
+            className={cn(
+              "flex size-11 items-center justify-center rounded-xl border transition-colors",
+              searchOpen || filters.search
+                ? "border-brand-300 bg-brand-50 text-brand-700"
+                : "border-line bg-surface text-ink-soft active:bg-surface-muted",
+            )}
+          >
+            <Search className="size-5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            aria-label={`Filter tasks${activeCount ? `, ${activeCount} active` : ""}`}
+            className={cn(
+              "relative flex size-11 items-center justify-center rounded-xl border transition-colors",
+              activeCount > 0
+                ? "border-brand-300 bg-brand-50 text-brand-700"
+                : "border-line bg-surface text-ink-soft active:bg-surface-muted",
+            )}
+          >
+            <ListFilter className="size-5" />
+            {activeCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex min-w-4.5 items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold leading-[1.125rem] text-white ring-2 ring-canvas dark:bg-brand-500">
+                {activeCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Desktop actions */}
         <div className="hidden items-center gap-2 lg:flex">
           <div className="flex items-center rounded-xl bg-surface-muted p-1">
             <FilterMenu onChange={(patch) => dispatch(setBoardFilter(patch))} />
@@ -181,11 +221,38 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
         </div>
       </header>
 
-      {/* Stat tiles */}
+      {/* Search reveals inline on phones rather than occupying a permanent row */}
+      {searchOpen && (
+        <div className="relative lg:hidden">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+          <input
+            autoFocus
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
+            placeholder="Search tasks…"
+            aria-label="Search tasks"
+            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-11 text-ink placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setSearchDraft("");
+              setSearchOpen(false);
+            }}
+            aria-label="Close search"
+            className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-ink-faint active:bg-surface-muted"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Stat tiles — one scrollable row on phones so the task list starts
+          near the top of the viewport; a 5-up grid from `lg`. */}
       {!stats ? (
         <StatSkeleton count={5} />
       ) : (
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+        <section className="no-scrollbar scroll-contain -mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-visible">
           <StatTile label="Total tasks" value={stats.total} />
           <StatTile
             label="Pending"
@@ -216,33 +283,6 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
           />
         </section>
       )}
-
-      {/* Filter trigger — phones get a sheet, desktop the inline bar */}
-      <div className="flex items-center gap-2.5 lg:hidden">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
-          <input
-            value={searchDraft}
-            onChange={(event) => setSearchDraft(event.target.value)}
-            placeholder="Search tasks…"
-            aria-label="Search tasks"
-            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-ink placeholder:text-ink-faint focus:border-brand-400 focus:ring-4 focus:ring-brand-500/10 focus:outline-none"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-[13px] font-semibold text-ink-soft active:bg-surface-muted"
-        >
-          <ListFilter className="size-4" />
-          Filter
-          {activeCount > 0 && (
-            <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white dark:bg-brand-500">
-              {activeCount}
-            </span>
-          )}
-        </button>
-      </div>
 
       {/* Filter bar */}
       <section className="card hidden flex-wrap items-center gap-2.5 p-3 lg:flex">
@@ -508,80 +548,22 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
               </table>
             </div>
 
-            {/* Phone/tablet: stacked rows */}
-            <ul className={cn("divide-y divide-line lg:hidden", isFetching && "opacity-60")}>
-              {tasks.map((task) => {
-                const color = groupColor(task.group.colorKey);
-                const overdue = isOverdue(task.dueDate, task.status);
-
-                return (
-                  <li key={task.id}>
-                    <Link
-                      href={`/tasks/${task.id}`}
-                      className="flex gap-3 p-4 transition-colors active:bg-surface-muted"
-                    >
-                      <span
-                        className={cn(
-                          "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                          color.chip,
-                        )}
-                      >
-                        <Layers className="size-5" />
-                      </span>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[14.5px] font-semibold leading-snug text-ink">
-                          {task.title}
-                        </p>
-                        <p className="mt-0.5 text-[12px] text-ink-muted">
-                          {task.group.name}
-                        </p>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <PriorityBadge priority={task.priority} />
-                          <StatusBadge status={task.status} />
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <div className="flex min-w-0 items-center gap-2">
-                            {task.assignee && (
-                              <Avatar user={task.assignee} size="xs" />
-                            )}
-                            <span className="truncate text-[12px] text-ink-muted">
-                              {task.assignee?.fullName ?? "Unassigned"}
-                            </span>
-                          </div>
-                          <span
-                            className={cn(
-                              "shrink-0 text-[12px]",
-                              overdue
-                                ? "font-semibold text-rose-600"
-                                : "text-ink-muted",
-                            )}
-                          >
-                            {task.dueDate ? formatShortDate(task.dueDate) : "—"}
-                          </span>
-                        </div>
-
-                        <div className="mt-2.5 flex items-center gap-2">
-                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
-                            <div
-                              className={cn(
-                                "h-full rounded-full",
-                                progressTone(task),
-                              )}
-                              style={{ width: `${task.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-[11px] font-semibold text-ink-muted">
-                            {task.progress}%
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
+            {/* Phone/tablet: the same dense rows the group list uses. */}
+            <ul
+              className={cn(
+                "divide-y divide-line lg:hidden",
+                isFetching && "opacity-60",
+              )}
+            >
+              {tasks.map((task) => (
+                <li key={task.id}>
+                  <TaskListRow
+                    task={task}
+                    onEdit={setEditing}
+                    onDelete={setDeleting}
+                  />
+                </li>
+              ))}
             </ul>
 
             {data && data.totalPages > 1 && (
@@ -777,36 +759,43 @@ function StatTile({
   valueClass?: string;
   onClick?: () => void;
 }) {
+  // Compact chip on phones (value and label side by side, ~1 line tall);
+  // the taller stacked card returns at `lg`.
   const content = (
     <>
-      <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">
-        {label}
-      </p>
-      <p className="mt-2 flex items-center gap-2">
+      <p className="flex items-center gap-1.5 lg:mt-2 lg:order-2">
         <span
           className={cn(
-            "text-2xl font-bold tracking-tight",
+            "text-lg font-bold tracking-tight lg:text-2xl",
             valueClass ?? "text-ink",
           )}
         >
           {value}
         </span>
         {dot && value > 0 && (
-          <span className={cn("size-1.5 rounded-full", dot)} />
+          <span className={cn("size-1.5 shrink-0 rounded-full", dot)} />
         )}
+      </p>
+      <p className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-ink-soft lg:order-1 lg:text-[11px] lg:tracking-[0.08em]">
+        {label}
       </p>
     </>
   );
 
+  const shell = cn(
+    "card flex shrink-0 snap-start items-center gap-2 whitespace-nowrap px-3 py-2.5",
+    "lg:w-auto lg:flex-col lg:items-start lg:gap-0 lg:p-5",
+  );
+
   if (!onClick) {
-    return <div className="card p-4 sm:p-5">{content}</div>;
+    return <div className={shell}>{content}</div>;
   }
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="card card-interactive p-4 text-left sm:p-5"
+      className={cn(shell, "card-interactive text-left")}
     >
       {content}
     </button>

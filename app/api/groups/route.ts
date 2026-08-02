@@ -13,11 +13,12 @@ export const POST = handler(async (request: Request) => {
   const user = await requireUser();
   const input = await parseBody(request, createGroupSchema);
 
-  // The creator is always a member, regardless of what the client sent.
-  const memberIds = [...new Set(input.memberIds.filter((id) => id !== user.id))];
+  // The creator is the only member at creation time. Everybody else is invited
+  // and joins only once they accept from their Requests page.
+  const inviteeIds = [...new Set(input.memberIds.filter((id) => id !== user.id))];
 
   const valid = await db.user.findMany({
-    where: { id: { in: memberIds }, status: { not: "DISABLED" }, role: "USER" },
+    where: { id: { in: inviteeIds }, status: { not: "DISABLED" }, role: "USER" },
     select: { id: true },
   });
 
@@ -28,11 +29,12 @@ export const POST = handler(async (request: Request) => {
       visibility: input.visibility,
       colorKey: input.colorKey,
       createdById: user.id,
-      members: {
-        create: [
-          { userId: user.id, role: "OWNER" },
-          ...valid.map((member) => ({ userId: member.id })),
-        ],
+      members: { create: [{ userId: user.id, role: "OWNER" }] },
+      invitations: {
+        create: valid.map((invitee) => ({
+          inviteeId: invitee.id,
+          invitedById: user.id,
+        })),
       },
     },
   });
@@ -45,13 +47,16 @@ export const POST = handler(async (request: Request) => {
   });
 
   await notify({
-    userIds: valid.map((member) => member.id),
+    userIds: valid.map((invitee) => invitee.id),
     type: "GROUP_INVITATION",
-    title: "Added to a group",
-    body: `${user.fullName} added you to "${group.name}".`,
-    link: `/groups/${group.id}`,
+    title: "Group invitation",
+    body: `${user.fullName} created "${group.name}" and asked you to join.`,
+    link: "/requests",
     exceptUserId: user.id,
   });
 
-  return ok({ group: { id: group.id, name: group.name } }, 201);
+  return ok(
+    { group: { id: group.id, name: group.name }, invited: valid.length },
+    201,
+  );
 });

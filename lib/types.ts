@@ -8,6 +8,7 @@ export type Role = "USER" | "ADMIN";
 export type UserStatus = "ACTIVE" | "PENDING" | "DISABLED";
 export type GroupVisibility = "PUBLIC" | "PRIVATE";
 export type GroupRole = "OWNER" | "MEMBER";
+export type InvitationStatus = "PENDING" | "ACCEPTED" | "DECLINED";
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TaskStatus =
   | "BACKLOG"
@@ -68,6 +69,30 @@ export interface GroupMemberDto {
   user: UserSummary;
 }
 
+export interface GroupInvitationDto {
+  id: string;
+  status: InvitationStatus;
+  createdAt: string;
+  respondedAt: string | null;
+  group: {
+    id: string;
+    name: string;
+    description: string | null;
+    colorKey: string;
+    memberCount: number;
+  };
+  invitedBy: UserSummary;
+  invitee: UserSummary;
+}
+
+/** What an email lookup says about the person behind the address. */
+export type InviteeState = "AVAILABLE" | "SELF" | "MEMBER" | "INVITED";
+
+export interface LookupResult {
+  user: UserSummary | null;
+  state: InviteeState | null;
+}
+
 export interface GroupSummary {
   id: string;
   name: string;
@@ -85,6 +110,8 @@ export interface GroupSummary {
 export interface GroupDetail extends GroupSummary {
   createdBy: UserSummary;
   allMembers: GroupMemberDto[];
+  /** Invitations still waiting on an answer. Empty for non-owners. */
+  pendingInvitations: GroupInvitationDto[];
   activeTaskCount: number;
   overdueTaskCount: number;
 }

@@ -52,8 +52,13 @@ export default function RootLayout({
     >
       <head>
         {/* Applies the stored theme before first paint — without this the page
-            flashes light before React hydrates. */}
+            flashes light before React hydrates.
+
+            `suppressHydrationWarning` because this tag is a common target for
+            browser extensions, which rewrite its contents and would otherwise
+            trip React's attribute diff on every load. */}
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
       </head>

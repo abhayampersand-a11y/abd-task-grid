@@ -6,6 +6,7 @@ import type {
   ChecklistItemDto,
   CommentDto,
   CurrentUser,
+  GroupInvitationDto,
   GroupMemberDto,
   NotificationDto,
   TaskSummary,
@@ -66,6 +67,53 @@ export function toMember(row: {
     role: row.role === "OWNER" ? "OWNER" : "MEMBER",
     joinedAt: row.joinedAt.toISOString(),
     user: toUserSummary(row.user),
+  };
+}
+
+/** Shape required by `toInvitation` — keep route `include`s in sync with this. */
+export const invitationInclude = {
+  group: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      colorKey: true,
+      _count: { select: { members: true } },
+    },
+  },
+  invitedBy: { select: userSummarySelect },
+  invitee: { select: userSummarySelect },
+} as const;
+
+export function toInvitation(row: {
+  id: string;
+  status: string;
+  createdAt: Date;
+  respondedAt: Date | null;
+  group: {
+    id: string;
+    name: string;
+    description: string | null;
+    colorKey: string;
+    _count: { members: number };
+  };
+  invitedBy: UserSummaryRow;
+  invitee: UserSummaryRow;
+}): GroupInvitationDto {
+  return {
+    id: row.id,
+    status: row.status as GroupInvitationDto["status"],
+    createdAt: row.createdAt.toISOString(),
+    respondedAt: row.respondedAt?.toISOString() ?? null,
+    group: {
+      id: row.group.id,
+      name: row.group.name,
+      description: row.group.description,
+      colorKey: row.group.colorKey,
+      memberCount: row.group._count.members,
+    },
+    invitedBy: toUserSummary(row.invitedBy),
+    invitee: toUserSummary(row.invitee),
   };
 }
 

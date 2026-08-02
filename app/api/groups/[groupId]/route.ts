@@ -9,7 +9,13 @@ import {
   requireMembership,
   requireUser,
 } from "@/lib/api";
-import { toMember, toUserSummary, userSummarySelect } from "@/lib/serialize";
+import {
+  invitationInclude,
+  toInvitation,
+  toMember,
+  toUserSummary,
+  userSummarySelect,
+} from "@/lib/serialize";
 import { updateGroupSchema } from "@/lib/validation";
 import type { GroupDetail } from "@/lib/types";
 
@@ -33,7 +39,9 @@ export const GET = handler(
 
     if (!group) throw notFound("That group no longer exists.");
 
-    const [completed, active, overdue] = await Promise.all([
+    const isOwner = membership.role === "OWNER";
+
+    const [completed, active, overdue, pending] = await Promise.all([
       db.task.count({ where: { groupId, status: "COMPLETED" } }),
       db.task.count({ where: { groupId, status: { not: "COMPLETED" } } }),
       db.task.count({
@@ -43,6 +51,14 @@ export const GET = handler(
           dueDate: { lt: new Date() },
         },
       }),
+      // Only the owner can invite, so only the owner is shown the outbox.
+      isOwner
+        ? db.groupInvitation.findMany({
+            where: { groupId, status: "PENDING" },
+            orderBy: { createdAt: "desc" },
+            include: invitationInclude,
+          })
+        : Promise.resolve([]),
     ]);
 
     const detail: GroupDetail = {
@@ -57,10 +73,11 @@ export const GET = handler(
       completedTaskCount: completed,
       activeTaskCount: active,
       overdueTaskCount: overdue,
-      myRole: membership.role === "OWNER" ? "OWNER" : "MEMBER",
+      myRole: isOwner ? "OWNER" : "MEMBER",
       createdBy: toUserSummary(group.createdBy),
       members: group.members.slice(0, 6).map((m) => toUserSummary(m.user)),
       allMembers: group.members.map(toMember),
+      pendingInvitations: pending.map(toInvitation),
     };
 
     return ok({ group: detail });

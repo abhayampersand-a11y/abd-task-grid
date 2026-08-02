@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -19,11 +20,12 @@ import { cn } from "@/lib/utils";
 import type { CurrentUser } from "@/lib/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setSidebarOpen } from "@/store/ui-slice";
-import { useNotificationsQuery } from "@/store/api";
+import { useInvitationsQuery, useNotificationsQuery } from "@/store/api";
 
 const USER_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/groups", label: "Groups", icon: Users },
+  { href: "/requests", label: "Requests", icon: Inbox },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/profile", label: "Profile", icon: User },
 ];
@@ -46,13 +48,19 @@ export function Sidebar({
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const open = useAppSelector((state) => state.ui.sidebarOpen);
+  const isAdmin = user.role === "ADMIN";
+
   const { data: notifications } = useNotificationsQuery(undefined, {
     pollingInterval: 60_000,
   });
+  const { data: requests } = useInvitationsQuery(undefined, {
+    pollingInterval: 60_000,
+    skip: isAdmin,
+  });
 
-  const isAdmin = user.role === "ADMIN";
   const nav = isAdmin ? ADMIN_NAV : USER_NAV;
   const unread = notifications?.unreadCount ?? 0;
+  const pendingRequests = requests?.pendingCount ?? 0;
 
   const close = () => dispatch(setSidebarOpen(false));
 
@@ -124,6 +132,13 @@ export function Sidebar({
                 ? pathname === "/admin"
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
+            const count =
+              item.href === "/notifications"
+                ? unread
+                : item.href === "/requests"
+                  ? pendingRequests
+                  : 0;
+
             return (
               <Link
                 key={item.href}
@@ -138,14 +153,14 @@ export function Sidebar({
               >
                 <item.icon className="size-5 shrink-0" />
                 <span className="flex-1">{item.label}</span>
-                {item.href === "/notifications" && unread > 0 && (
+                {count > 0 && (
                   <span
                     className={cn(
                       "rounded-full px-2 py-0.5 text-[10px] font-bold",
                       active ? "bg-white/20 text-white" : "bg-rose-500 text-white",
                     )}
                   >
-                    {unread > 99 ? "99+" : unread}
+                    {count > 99 ? "99+" : count}
                   </span>
                 )}
               </Link>

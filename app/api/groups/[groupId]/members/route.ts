@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import {
   forbidden,
@@ -9,12 +8,9 @@ import {
   requireMembership,
   requireUser,
 } from "@/lib/api";
-import { notify, recordActivity } from "@/lib/events";
+import { notify } from "@/lib/events";
 import { toMember, userSummarySelect } from "@/lib/serialize";
-
-const addMembersSchema = z.object({
-  memberIds: z.array(z.string()).min(1, "Select at least one member."),
-});
+import { inviteMembersSchema } from "@/lib/validation";
 
 export const GET = handler(
   async (
@@ -35,6 +31,10 @@ export const GET = handler(
   },
 );
 
+/**
+ * Invites people to the group. Nobody is added here — a PENDING invitation is
+ * created and the invitee joins from their Requests page.
+ */
 export const POST = handler(
   async (
     request: NextRequest,
@@ -44,20 +44,27 @@ export const POST = handler(
     const { groupId } = await ctx.params;
     const membership = await requireMembership(groupId, user.id);
     if (membership.role !== "OWNER") {
-      throw forbidden("Only the group owner can add members.");
+      throw forbidden("Only the group owner can invite members.");
     }
 
-    const { memberIds } = await parseBody(request, addMembersSchema);
+    const { memberIds } = await parseBody(request, inviteMembersSchema);
 
-    const existing = await db.groupMember.findMany({
-      where: { groupId },
-      select: { userId: true },
-    });
-    const alreadyIn = new Set(existing.map((m) => m.userId));
+    const [members, invitations] = await Promise.all([
+      db.groupMember.findMany({ where: { groupId }, select: { userId: true } }),
+      db.groupInvitation.findMany({
+        where: { groupId, status: "PENDING" },
+        select: { inviteeId: true },
+      }),
+    ]);
+
+    const settled = new Set([
+      ...members.map((m) => m.userId),
+      ...invitations.map((i) => i.inviteeId),
+    ]);
 
     const candidates = await db.user.findMany({
       where: {
-        id: { in: memberIds.filter((id) => !alreadyIn.has(id)) },
+        id: { in: memberIds.filter((id) => !settled.has(id)) },
         status: { not: "DISABLED" },
         role: "USER",
       },
@@ -65,7 +72,7 @@ export const POST = handler(
     });
 
     if (candidates.length === 0) {
-      return ok({ added: 0 });
+      return ok({ invited: 0 });
     }
 
     const group = await db.group.findUniqueOrThrow({
@@ -73,28 +80,34 @@ export const POST = handler(
       select: { name: true },
     });
 
-    await db.groupMember.createMany({
-      data: candidates.map((c) => ({ groupId, userId: c.id })),
-    });
-
-    await recordActivity({
-      type: "MEMBER_ADDED",
-      message: `${user.fullName} added ${candidates.length} member${
-        candidates.length === 1 ? "" : "s"
-      }`,
-      actorId: user.id,
-      groupId,
-    });
+    // Somebody who declined earlier still owns the (group, user) row, so the
+    // re-invite has to reset it rather than insert a second one.
+    await Promise.all(
+      candidates.map((candidate) =>
+        db.groupInvitation.upsert({
+          where: {
+            groupId_inviteeId: { groupId, inviteeId: candidate.id },
+          },
+          create: { groupId, inviteeId: candidate.id, invitedById: user.id },
+          update: {
+            status: "PENDING",
+            invitedById: user.id,
+            respondedAt: null,
+            createdAt: new Date(),
+          },
+        }),
+      ),
+    );
 
     await notify({
       userIds: candidates.map((c) => c.id),
       type: "GROUP_INVITATION",
-      title: "Added to a group",
-      body: `${user.fullName} added you to "${group.name}".`,
-      link: `/groups/${groupId}`,
+      title: "Group invitation",
+      body: `${user.fullName} asked you to join "${group.name}".`,
+      link: "/requests",
       exceptUserId: user.id,
     });
 
-    return ok({ added: candidates.length }, 201);
+    return ok({ invited: candidates.length }, 201);
   },
 );

@@ -348,6 +348,7 @@ async function main() {
   await db.taskAttachment.deleteMany();
   await db.checklistItem.deleteMany();
   await db.task.deleteMany();
+  await db.groupInvitation.deleteMany();
   await db.groupMember.deleteMany();
   await db.group.deleteMany();
   await db.user.deleteMany();
@@ -421,6 +422,52 @@ async function main() {
       },
     });
   }
+
+  // Every group leaves one invitation outstanding so the Requests page has
+  // something to answer on a fresh database.
+  console.log("→ Creating pending group invitations…");
+  const invitationRows: {
+    groupId: string;
+    inviteeId: string;
+    invitedById: string;
+    createdAt: Date;
+  }[] = [];
+  const invitationNotifications: {
+    userId: string;
+    type: "GROUP_INVITATION";
+    title: string;
+    body: string;
+    link: string;
+    createdAt: Date;
+  }[] = [];
+
+  for (const [index, spec] of GROUPS.entries()) {
+    const outsider = PEOPLE.findIndex(
+      (_, personIndex) =>
+        !spec.memberIndexes.includes(personIndex) &&
+        !DISABLED_INDEXES.has(personIndex),
+    );
+    if (outsider === -1) continue;
+
+    const createdAt = days(-between(0, 6));
+    invitationRows.push({
+      groupId: groupIds[index],
+      inviteeId: userIds[outsider],
+      invitedById: userIds[spec.ownerIndex],
+      createdAt,
+    });
+    invitationNotifications.push({
+      userId: userIds[outsider],
+      type: "GROUP_INVITATION",
+      title: "Group invitation",
+      body: `${PEOPLE[spec.ownerIndex].fullName} asked you to join "${spec.name}".`,
+      link: "/requests",
+      createdAt,
+    });
+  }
+
+  await db.groupInvitation.createMany({ data: invitationRows });
+  await db.notification.createMany({ data: invitationNotifications });
 
   console.log("→ Creating tasks…");
   const taskRows: {
@@ -701,12 +748,15 @@ async function main() {
   console.log("\n✔ Seed complete.\n");
   console.log(`  ${PEOPLE.length} members + 1 administrator`);
   console.log(`  ${GROUPS.length} groups`);
+  console.log(`  ${invitationRows.length} pending group invitations`);
   console.log(`  ${taskRows.length} tasks`);
   console.log(`  ${checklistRows.length} checklist items`);
   console.log(`  ${commentRows.length} comments`);
   console.log(`  ${attachmentRows.length} attachments`);
   console.log(`  ${activityRows.length} activity entries`);
-  console.log(`  ${notificationRows.length} notifications\n`);
+  console.log(
+    `  ${notificationRows.length + invitationNotifications.length} notifications\n`,
+  );
   console.log("  Admin  ", adminEmail, "/", process.env.ADMIN_PASSWORD ?? "Admin@12345");
   console.log("  Demo   ", PEOPLE[0].email, "/", DEMO_PASSWORD);
   console.log("  (every seeded member uses the same demo password)\n");

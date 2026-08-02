@@ -22,8 +22,9 @@ import { Tabs } from "@/components/ui/tabs";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { AssignTaskModal } from "@/components/tasks/assign-task-modal";
 import { EditTaskModal } from "@/components/tasks/edit-task-modal";
-import { TaskCard } from "@/components/tasks/task-card";
+import { TaskCard, TaskListRow } from "@/components/tasks/task-card";
 import { TaskFilters } from "@/components/tasks/task-filters";
+import { cn } from "@/lib/utils";
 import type { TaskSummary } from "@/lib/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setActiveTaskTab } from "@/store/ui-slice";
@@ -259,19 +260,27 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         />
       </div>
 
-      <button
-        type="button"
-        onClick={() => setFiltersOpen(true)}
-        className="inline-flex h-11 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-[13px] font-semibold text-ink-soft active:bg-surface-muted lg:hidden"
-      >
-        <SlidersHorizontal className="size-4" />
-        Filter &amp; sort
-        {activeFilterCount > 0 && (
-          <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white dark:bg-brand-500">
-            {activeFilterCount}
-          </span>
-        )}
-      </button>
+      {/* Icon-only on phones so the task list starts higher up. */}
+      <div className="flex justify-end lg:hidden">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          aria-label={`Filter and sort${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
+          className={cn(
+            "relative flex size-11 items-center justify-center rounded-xl border transition-colors",
+            activeFilterCount > 0
+              ? "border-brand-300 bg-brand-50 text-brand-700"
+              : "border-line bg-surface text-ink-soft active:bg-surface-muted",
+          )}
+        >
+          <SlidersHorizontal className="size-5" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex min-w-4.5 items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-bold leading-[1.125rem] text-white ring-2 ring-canvas dark:bg-brand-500">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
 
       {isFetching && tasks.length === 0 ? (
         <CardSkeleton />
@@ -300,17 +309,33 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              variant={tab}
-              onEdit={tab === "assigned-by-me" ? setEditing : undefined}
-              onDelete={tab === "assigned-by-me" ? setDeleting : undefined}
-            />
-          ))}
-        </div>
+        <>
+          {/* Phones: one dense, hairline-separated list. */}
+          <div className="card divide-y divide-line overflow-hidden sm:hidden">
+            {tasks.map((task) => (
+              <TaskListRow
+                key={task.id}
+                task={task}
+                variant={tab}
+                onEdit={tab === "assigned-by-me" ? setEditing : undefined}
+                onDelete={tab === "assigned-by-me" ? setDeleting : undefined}
+              />
+            ))}
+          </div>
+
+          {/* Tablet and desktop keep the card grid. */}
+          <div className="hidden gap-5 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                variant={tab}
+                onEdit={tab === "assigned-by-me" ? setEditing : undefined}
+                onDelete={tab === "assigned-by-me" ? setDeleting : undefined}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <AssignTaskModal

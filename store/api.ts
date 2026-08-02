@@ -5,8 +5,10 @@ import type {
   CurrentUser,
   DashboardOverview,
   GroupDetail,
+  GroupInvitationDto,
   GroupMemberDto,
   GroupSummary,
+  LookupResult,
   NotificationDto,
   Paginated,
   SearchResults,
@@ -18,6 +20,7 @@ import type {
   ChangePasswordInput,
   CreateGroupInput,
   CreateTaskInput,
+  InvitationAction,
   SignInInput,
   SignUpInput,
   UpdateProfileInput,
@@ -118,6 +121,7 @@ export const api = createApi({
     "Task",
     "TaskList",
     "Notification",
+    "Invitation",
     "Dashboard",
     "AdminUsers",
     "Directory",
@@ -160,7 +164,10 @@ export const api = createApi({
       query: (groupId) => `/groups/${groupId}/members`,
       providesTags: (_r, _e, groupId) => [{ type: "Group", id: groupId }],
     }),
-    createGroup: build.mutation<{ group: { id: string; name: string } }, CreateGroupInput>({
+    createGroup: build.mutation<
+      { group: { id: string; name: string }; invited: number },
+      CreateGroupInput
+    >({
       query: (body) => ({ url: "/groups", method: "POST", body }),
       invalidatesTags: ["GroupList", "Dashboard"],
     }),
@@ -182,8 +189,8 @@ export const api = createApi({
       query: (groupId) => ({ url: `/groups/${groupId}`, method: "DELETE" }),
       invalidatesTags: ["GroupList", "Dashboard", "TaskList"],
     }),
-    addGroupMembers: build.mutation<
-      { added: number },
+    inviteGroupMembers: build.mutation<
+      { invited: number },
       { groupId: string; memberIds: string[] }
     >({
       query: ({ groupId, memberIds }) => ({
@@ -214,6 +221,47 @@ export const api = createApi({
     directory: build.query<{ users: UserSummary[] }, string | void>({
       query: (q) => ({ url: "/users", params: clean({ q: q ?? undefined }) }),
       providesTags: ["Directory"],
+    }),
+    /** Exact-email lookup behind the invite box. No partial matching. */
+    lookupUser: build.query<LookupResult, { email: string; groupId?: string }>({
+      query: ({ email, groupId }) => ({
+        url: "/users/lookup",
+        params: clean({ email, groupId }),
+      }),
+      providesTags: ["Directory", "Invitation"],
+    }),
+
+    // ── Invitations ───────────────────────────────────────────────────────
+    invitations: build.query<
+      { invitations: GroupInvitationDto[]; pendingCount: number },
+      void
+    >({
+      query: () => "/invitations",
+      providesTags: ["Invitation"],
+    }),
+    respondToInvitation: build.mutation<
+      { invitation: GroupInvitationDto },
+      { invitationId: string; action: InvitationAction }
+    >({
+      query: ({ invitationId, action }) => ({
+        url: `/invitations/${invitationId}`,
+        method: "PATCH",
+        body: { action },
+      }),
+      invalidatesTags: ["Invitation", "GroupList", "Dashboard", "Notification"],
+    }),
+    cancelInvitation: build.mutation<
+      { success: boolean },
+      { invitationId: string; groupId: string }
+    >({
+      query: ({ invitationId }) => ({
+        url: `/invitations/${invitationId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, { groupId }) => [
+        { type: "Group", id: groupId },
+        "Invitation",
+      ],
     }),
 
     // ── Tasks ─────────────────────────────────────────────────────────────
@@ -362,9 +410,13 @@ export const {
   useCreateGroupMutation,
   useUpdateGroupMutation,
   useDeleteGroupMutation,
-  useAddGroupMembersMutation,
+  useInviteGroupMembersMutation,
   useRemoveGroupMemberMutation,
   useDirectoryQuery,
+  useLookupUserQuery,
+  useInvitationsQuery,
+  useRespondToInvitationMutation,
+  useCancelInvitationMutation,
   useTasksQuery,
   useTaskStatsQuery,
   useTaskQuery,

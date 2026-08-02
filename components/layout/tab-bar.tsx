@@ -2,22 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LayoutDashboard, ShieldCheck, User, Users } from "lucide-react";
+import {
+  Bell,
+  Inbox,
+  LayoutDashboard,
+  ShieldCheck,
+  User,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CurrentUser } from "@/lib/types";
-import { useNotificationsQuery } from "@/store/api";
+import { useInvitationsQuery, useNotificationsQuery } from "@/store/api";
 
 interface Tab {
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
-  badge?: boolean;
+  badge?: "alerts" | "requests";
 }
 
 const USER_TABS: Tab[] = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/groups", label: "Groups", icon: Users },
-  { href: "/notifications", label: "Alerts", icon: Bell, badge: true },
+  { href: "/requests", label: "Requests", icon: Inbox, badge: "requests" },
+  { href: "/notifications", label: "Alerts", icon: Bell, badge: "alerts" },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
@@ -37,7 +45,14 @@ export function TabBar({ user }: { user: CurrentUser }) {
     pollingInterval: 60_000,
     skip: isAdmin,
   });
-  const unread = data?.unreadCount ?? 0;
+  const { data: requests } = useInvitationsQuery(undefined, {
+    pollingInterval: 60_000,
+    skip: isAdmin,
+  });
+  const counts = {
+    alerts: data?.unreadCount ?? 0,
+    requests: requests?.pendingCount ?? 0,
+  };
 
   return (
     <nav
@@ -54,6 +69,8 @@ export function TabBar({ user }: { user: CurrentUser }) {
               ? pathname === "/admin"
               : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 
+          const count = tab.badge ? counts[tab.badge] : 0;
+
           return (
             <li key={tab.href} className="flex-1">
               <Link
@@ -69,9 +86,9 @@ export function TabBar({ user }: { user: CurrentUser }) {
                   <tab.icon
                     className={cn("size-6", active && "stroke-[2.4]")}
                   />
-                  {tab.badge && unread > 0 && (
+                  {count > 0 && (
                     <span className="absolute -right-2 -top-1 flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold leading-4 text-white ring-2 ring-surface">
-                      {unread > 9 ? "9+" : unread}
+                      {count > 9 ? "9+" : count}
                     </span>
                   )}
                 </span>
