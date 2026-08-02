@@ -189,7 +189,7 @@ export function CreateGroupModal({
               <UserPlus className="size-4.5 text-brand-600" />
               <h3 className="text-[15px] font-semibold text-ink">Add Members</h3>
             </div>
-            <span className="rounded-full bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white">
+            <span className="rounded-full bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white dark:bg-brand-500">
               {memberIds.length} Selected
             </span>
           </header>

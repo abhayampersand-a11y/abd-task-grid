@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — the user picks it in Settings, so it must not be
+   driven by `prefers-color-scheme` alone. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ---------------------------------------------------------------------------
    TaskFlow Pro design tokens
    Enterprise-calm: near-white canvas, hairline borders, one confident accent.
@@ -82,6 +86,102 @@
   50% {
     opacity: 0.45;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme.
+
+   Rather than annotating ~225 call sites with `dark:` variants, the palette
+   itself is redefined here: the light end of each ramp (50–200) becomes a dark
+   tint and the dark end (600–900) becomes a light tone. Existing utilities like
+   `bg-rose-50 text-rose-700` therefore invert on their own. Mid tones (300–500)
+   are left alone so solid dots and fills stay vivid.
+
+   The exception is `brand`, whose 600/700 double as both a fill and a text
+   colour — the handful of places that fill with it carry an explicit
+   `dark:bg-brand-500` so white text keeps its contrast.
+--------------------------------------------------------------------------- */
+.dark {
+  color-scheme: dark;
+
+  --color-canvas: #0c0e15;
+  --color-surface: #151823;
+  --color-surface-muted: #1c2030;
+
+  --color-line: #262b3a;
+  --color-line-strong: #353b4e;
+
+  --color-ink: #eef1f6;
+  --color-ink-soft: #c2c8d4;
+  --color-ink-muted: #8d94a4;
+  --color-ink-faint: #6a7183;
+
+  /* brand — light end darkens, text end lightens, fills (400/500) untouched */
+  --color-brand-50: #171a35;
+  --color-brand-100: #1e2246;
+  --color-brand-200: #2a2f60;
+  --color-brand-300: #3d4488;
+  --color-brand-600: #a5a0ff;
+  --color-brand-700: #c1beff;
+  --color-brand-800: #d8d6ff;
+  --color-brand-900: #e8e7ff;
+
+  --color-rose-50: #2a1218;
+  --color-rose-100: #3a1720;
+  --color-rose-200: #4d1f2b;
+  --color-rose-600: #ff8fa3;
+  --color-rose-700: #ffb3c1;
+
+  --color-emerald-50: #0d2620;
+  --color-emerald-100: #113329;
+  --color-emerald-200: #174536;
+  --color-emerald-600: #4ade9f;
+  --color-emerald-700: #7cebbb;
+
+  --color-amber-50: #2a1f0a;
+  --color-amber-100: #3a2a0d;
+  --color-amber-200: #4d3813;
+  --color-amber-600: #fbbf4d;
+  --color-amber-700: #fcd383;
+
+  --color-sky-50: #0d2231;
+  --color-sky-100: #112e42;
+  --color-sky-200: #163e58;
+  --color-sky-600: #56c8f5;
+  --color-sky-700: #8adcf9;
+
+  --color-violet-50: #1e1633;
+  --color-violet-100: #281d45;
+  --color-violet-200: #35275c;
+  --color-violet-600: #b49cff;
+  --color-violet-700: #cbbaff;
+
+  --color-blue-50: #0f1e35;
+  --color-blue-100: #142848;
+  --color-blue-200: #1b3660;
+  --color-blue-600: #7cb0ff;
+  --color-blue-700: #a5c8ff;
+
+  --color-indigo-50: #141833;
+  --color-indigo-100: #1c2046;
+  --color-indigo-600: #a5a0ff;
+  --color-indigo-700: #c1beff;
+
+  --color-slate-100: #1f2430;
+  --color-slate-600: #a8b0c0;
+  --color-slate-700: #c2c9d6;
+
+  --color-teal-100: #0d2b2b;
+  --color-teal-700: #6fe3d8;
+
+  --color-fuchsia-100: #2e1330;
+  --color-fuchsia-700: #f0a8f5;
+
+  /* Shadows carry no weight on dark surfaces — lean on borders instead. */
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-raise: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-float: 0 12px 32px rgb(0 0 0 / 0.55);
+  --shadow-overlay: 0 24px 64px rgb(0 0 0 / 0.7);
 }
 
 @layer base {

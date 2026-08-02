@@ -38,7 +38,7 @@ export const POST = handler(async (request: Request) => {
     },
   });
 
-  await createSessionCookie({ userId: user.id, role: "USER" });
+  const token = await createSessionCookie({ userId: user.id, role: "USER" });
 
-  return ok({ user: toCurrentUser(user) }, 201);
+  return ok({ user: toCurrentUser(user), token }, 201);
 });

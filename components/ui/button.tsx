@@ -15,9 +15,9 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-brand-600 text-white shadow-soft hover:bg-brand-700 active:bg-brand-800",
+    "bg-brand-600 text-white shadow-soft hover:bg-brand-700 active:bg-brand-800 dark:bg-brand-500 dark:hover:bg-brand-400 dark:active:bg-brand-500",
   secondary:
-    "bg-ink text-white hover:bg-ink/90 active:bg-ink shadow-soft",
+    "bg-ink text-white hover:bg-ink/90 active:bg-ink shadow-soft dark:bg-surface-muted dark:hover:bg-line",
   outline:
     "border border-line bg-surface text-ink hover:border-line-strong hover:bg-surface-muted",
   ghost: "text-ink-soft hover:bg-brand-50 hover:text-brand-700",
@@ -98,7 +98,7 @@ export function Fab({
       aria-label={label}
       className={cn(
         "fixed right-4 z-30 flex size-14 items-center justify-center rounded-full lg:hidden",
-        "bg-brand-600 text-white shadow-float transition-transform active:scale-95",
+        "bg-brand-600 text-white shadow-float transition-transform active:scale-95 dark:bg-brand-500",
       )}
       style={{ bottom: "calc(4.75rem + env(safe-area-inset-bottom))" }}
     >

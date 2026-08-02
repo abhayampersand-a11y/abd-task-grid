@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
 import { StoreProvider } from "@/store/provider";
+import {
+  THEME_INIT_SCRIPT,
+  ThemeProvider,
+} from "@/components/theme/theme-provider";
+import { ThemedToaster } from "@/components/theme/themed-toaster";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +28,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f39f6",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#4f39f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0e15" },
+  ],
   width: "device-width",
   initialScale: 1,
   // Content runs edge-to-edge; `env(safe-area-inset-*)` keeps the tab bar and
@@ -41,22 +48,22 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Applies the stored theme before first paint — without this the page
+            flashes light before React hydrates. */}
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
+      </head>
       <body className="min-h-full">
-        <StoreProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            toastOptions={{
-              style: {
-                borderRadius: "12px",
-                fontSize: "13.5px",
-              },
-            }}
-          />
-        </StoreProvider>
+        <ThemeProvider>
+          <StoreProvider>
+            {children}
+            <ThemedToaster />
+          </StoreProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

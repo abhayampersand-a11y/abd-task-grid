@@ -71,7 +71,7 @@ export function GroupsView() {
         <>
           {/* Summary banner */}
           <section className="grid gap-5 lg:grid-cols-[1.7fr_1fr]">
-            <div className="relative overflow-hidden rounded-2xl bg-brand-600 p-7 text-white shadow-raise">
+            <div className="relative overflow-hidden rounded-2xl bg-brand-600 p-7 text-white shadow-raise dark:bg-brand-500">
               <div
                 className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10"
                 aria-hidden

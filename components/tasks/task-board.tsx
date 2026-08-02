@@ -237,7 +237,7 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
           <ListFilter className="size-4" />
           Filter
           {activeCount > 0 && (
-            <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white">
+            <span className="rounded-full bg-brand-600 px-1.5 text-[10px] font-bold leading-4 text-white dark:bg-brand-500">
               {activeCount}
             </span>
           )}

@@ -93,7 +93,7 @@ export function AdminOverview() {
             />
           </section>
 
-          <section className="relative overflow-hidden rounded-2xl bg-ink p-8 text-white">
+          <section className="relative overflow-hidden rounded-2xl bg-ink p-8 text-white dark:bg-surface-muted">
             <div
               className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-brand-600/30 blur-3xl"
               aria-hidden
@@ -111,7 +111,7 @@ export function AdminOverview() {
               assignment stays entirely in the hands of group members.
             </p>
             <Link href="/admin/users" className="mt-7 inline-block">
-              <Button className="bg-white text-ink hover:bg-white/90">
+              <Button className="bg-white text-ink hover:bg-white/90 dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400">
                 Open user management
               </Button>
             </Link>

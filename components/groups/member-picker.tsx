@@ -89,7 +89,7 @@ export function MemberPicker({
                   type="checkbox"
                   checked={checked}
                   onChange={() => onToggle(user.id)}
-                  className="size-5 shrink-0 cursor-pointer appearance-none rounded-md border border-line-strong bg-surface transition-all checked:border-brand-600 checked:bg-brand-600 checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2220 6 9 17 4 12%22/></svg>')] checked:bg-[length:14px] checked:bg-center checked:bg-no-repeat"
+                  className="size-5 shrink-0 cursor-pointer appearance-none rounded-md border border-line-strong bg-surface transition-all checked:border-brand-600 checked:bg-brand-600 dark:checked:border-brand-500 dark:checked:bg-brand-500 checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2220 6 9 17 4 12%22/></svg>')] checked:bg-[length:14px] checked:bg-center checked:bg-no-repeat"
                 />
               </label>
             );

@@ -30,10 +30,12 @@ export const POST = handler(async (request: Request) => {
     );
   }
 
-  await createSessionCookie(
+  const token = await createSessionCookie(
     { userId: user.id, role: user.role === "ADMIN" ? "ADMIN" : "USER" },
     remember,
   );
 
-  return ok({ user: toCurrentUser(user) });
+  // `token` is for native clients only; the web app ignores it and relies on
+  // the httpOnly cookie set above.
+  return ok({ user: toCurrentUser(user), token });
 });

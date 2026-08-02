@@ -70,7 +70,7 @@ export function Pagination({
               className={cn(
                 buttonBase,
                 entry === page
-                  ? "bg-brand-600 text-white shadow-soft"
+                  ? "bg-brand-600 text-white shadow-soft dark:bg-brand-500"
                   : "text-ink-soft hover:bg-surface-muted",
               )}
             >

@@ -238,7 +238,7 @@ export default function LandingPage() {
                 </div>
               </article>
 
-              <article className="card card-interactive flex flex-col gap-4 bg-brand-600 p-7 text-white">
+              <article className="card card-interactive flex flex-col gap-4 bg-brand-600 p-7 text-white dark:bg-brand-500">
                 <span className="flex size-11 items-center justify-center rounded-xl bg-white/15">
                   <ShieldCheck className="size-5" />
                 </span>
@@ -268,7 +268,7 @@ export default function LandingPage() {
                 </div>
               </article>
 
-              <article className="card card-interactive flex flex-col gap-4 bg-ink p-7 text-white">
+              <article className="card card-interactive flex flex-col gap-4 bg-ink p-7 text-white dark:bg-surface-muted">
                 <span className="flex size-11 items-center justify-center rounded-xl bg-white/10">
                   <BarChart3 className="size-5" />
                 </span>
@@ -314,7 +314,7 @@ export default function LandingPage() {
                       key={status}
                       className={
                         index === 2
-                          ? "rounded-full bg-brand-600 px-3.5 py-1.5 text-[12.5px] font-semibold text-white"
+                          ? "rounded-full bg-brand-600 px-3.5 py-1.5 text-[12.5px] font-semibold text-white dark:bg-brand-500"
                           : "rounded-full bg-surface-muted px-3.5 py-1.5 text-[12.5px] font-medium text-ink-soft ring-1 ring-line"
                       }
                     >
@@ -349,7 +349,7 @@ export default function LandingPage() {
                   <span className="absolute right-5 top-5 text-[42px] font-bold leading-none text-brand-50">
                     {index + 1}
                   </span>
-                  <span className="relative flex size-11 items-center justify-center rounded-xl bg-brand-600 text-white">
+                  <span className="relative flex size-11 items-center justify-center rounded-xl bg-brand-600 text-white dark:bg-brand-500">
                     <step.icon className="size-5" />
                   </span>
                   <h3 className="relative mt-5 text-[15px] font-semibold text-ink">
@@ -419,7 +419,7 @@ export default function LandingPage() {
         {/* ── CTA ───────────────────────────────────────────────────── */}
         <section className="pb-20 sm:pb-24">
           <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
-            <div className="relative overflow-hidden rounded-3xl bg-ink px-6 py-16 text-center sm:px-12">
+            <div className="relative overflow-hidden rounded-3xl bg-ink px-6 py-16 text-center sm:px-12 dark:bg-surface-muted">
               <div
                 className="pointer-events-none absolute -left-24 -top-24 size-72 rounded-full bg-brand-600/25 blur-3xl"
                 aria-hidden

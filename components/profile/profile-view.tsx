@@ -9,10 +9,12 @@ import {
   Info,
   KeyRound,
   LogOut,
+  Palette,
   Shield,
   Trash2,
   User,
 } from "lucide-react";
+import { AppearanceSection } from "@/components/theme/appearance-section";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { InputField, TextareaField } from "@/components/ui/field";
@@ -31,10 +33,11 @@ import {
   useUpdateProfileMutation,
 } from "@/store/api";
 
-type Section = "personal" | "security" | "billing";
+type Section = "personal" | "appearance" | "security" | "billing";
 
 const SECTIONS: { value: Section; label: string; icon: typeof User }[] = [
   { value: "personal", label: "Personal Info", icon: User },
+  { value: "appearance", label: "Appearance", icon: Palette },
   { value: "security", label: "Security", icon: Shield },
   { value: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -140,7 +143,7 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
           <section className="card flex flex-col items-center p-7 text-center">
             <div className="relative">
               <Avatar user={user} size="2xl" />
-              <span className="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-full bg-brand-600 text-white ring-4 ring-surface">
+              <span className="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-full bg-brand-600 text-white ring-4 ring-surface dark:bg-brand-500">
                 <BadgeCheck className="size-4" />
               </span>
             </div>
@@ -287,6 +290,8 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
               </footer>
             </section>
           )}
+
+          {section === "appearance" && <AppearanceSection />}
 
           {section === "security" && (
             <>

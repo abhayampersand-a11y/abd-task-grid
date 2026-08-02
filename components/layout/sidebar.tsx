@@ -61,7 +61,7 @@ export function Sidebar({
       {/* Mobile scrim */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-ink/30 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-40 bg-ink/30 backdrop-blur-[2px] dark:bg-black/60 lg:hidden"
           onClick={close}
           aria-hidden
         />
@@ -76,7 +76,7 @@ export function Sidebar({
       >
         {/* Workspace identity */}
         <div className="flex items-center gap-3 px-5 py-5">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-soft">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-soft dark:bg-brand-500">
             {isAdmin ? (
               <ShieldCheck className="size-5.5" />
             ) : (
@@ -132,7 +132,7 @@ export function Sidebar({
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-brand-600 text-white shadow-soft"
+                    ? "bg-brand-600 text-white shadow-soft dark:bg-brand-500"
                     : "text-ink-soft hover:bg-brand-50 hover:text-brand-700",
                 )}
               >
