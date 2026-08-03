@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { Breadcrumb, type Crumb } from "./breadcrumb";
 
 export function PageHeader({
@@ -15,15 +16,23 @@ export function PageHeader({
   aside?: ReactNode;
 }) {
   return (
-    <header className="space-y-4">
+    <header className="space-y-3 lg:space-y-4">
       {crumbs && <Breadcrumb items={crumbs} />}
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-5">
         <div className="min-w-0 space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-[32px] sm:leading-tight">
+          {/* Phones get a compact one-line title so the content starts near the
+              top of the viewport — when crumbs are present they already name
+              the page, so the heading stays for screen readers only. */}
+          <h1
+            className={cn(
+              "truncate text-[17px] font-semibold tracking-tight text-ink lg:whitespace-normal lg:text-[32px] lg:font-bold lg:leading-tight",
+              crumbs && "sr-only lg:not-sr-only",
+            )}
+          >
             {title}
           </h1>
           {description && (
-            <p className="max-w-2xl text-sm leading-relaxed text-ink-muted">
+            <p className="hidden max-w-2xl text-sm leading-relaxed text-ink-muted lg:block">
               {description}
             </p>
           )}

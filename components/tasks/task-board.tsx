@@ -157,12 +157,12 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-ink sm:text-3xl lg:text-[38px] lg:leading-tight">
+      <header className="flex flex-row items-center justify-between gap-4 sm:items-start">
+        <div className="min-w-0">
+          <h1 className="truncate text-[17px] font-semibold tracking-tight text-ink lg:whitespace-normal lg:text-[38px] lg:font-bold lg:leading-tight">
             Tasks
           </h1>
-          <p className="mt-1.5 text-[14px] text-ink-muted sm:text-[15px]">
+          <p className="mt-1.5 hidden text-[15px] text-ink-muted lg:block">
             View and manage all tasks across your groups.
           </p>
         </div>
