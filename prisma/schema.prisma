@@ -92,6 +92,10 @@ model User {
   mobile       String?    @unique
   passwordHash String?
   avatarUrl    String?
+  /// R2 object key behind `avatarUrl`, kept so the old file can be deleted
+  /// when the picture changes. Null when the URL is not ours — an OAuth
+  /// provider's photo, or one pasted by hand — which we must not delete.
+  avatarKey    String?
   jobTitle     String?
   bio          String?
   role         Role       @default(USER)
@@ -110,6 +114,7 @@ model User {
   attachments     TaskAttachment[]
   activities      Activity[]
   notifications   Notification[]
+  pushTokens      PushToken[]
 
   @@index([role])
   @@index([status])
@@ -283,6 +288,31 @@ model Activity {
   @@index([taskId])
   @@index([groupId])
   @@index([createdAt])
+}
+
+/**
+ * One row per device that has agreed to receive push. The Expo token is the
+ * identity — it is unique per (app install, device), so a second person signing
+ * in on the same phone moves the row to their account instead of adding one,
+ * which is what stops the previous user's alerts from landing on a handset they
+ * no longer own.
+ *
+ * Rows are disposable: Expo answers `DeviceNotRegistered` for tokens the OS has
+ * revoked, and the sender deletes them on the spot.
+ */
+model PushToken {
+  id         String   @id @default(cuid())
+  userId     String
+  token      String   @unique
+  /// "ios" | "android" — only used for support/debugging.
+  platform   String
+  deviceName String?
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Notification {

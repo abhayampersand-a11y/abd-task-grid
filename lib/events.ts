@@ -1,6 +1,8 @@
 import "server-only";
 
+import { after } from "next/server";
 import { db } from "./db";
+import { sendPush } from "./push";
 import type { ActivityType, NotificationType } from "./types";
 
 interface ActivityInput {
@@ -48,4 +50,25 @@ export async function notify(input: NotifyInput) {
       link: input.link ?? null,
     })),
   });
+
+  // The row above is what the in-app list reads; this is the copy that reaches
+  // a phone whose owner does not have the app open. It runs *after* the
+  // response is flushed so nobody waits on exp.host to see their task save —
+  // still inside the same serverless invocation, so the work is not frozen.
+  const push = () =>
+    sendPush({
+      userIds: recipients,
+      type: input.type,
+      title: input.title,
+      body: input.body,
+      link: input.link ?? null,
+    });
+
+  try {
+    after(push);
+  } catch {
+    // `after` needs a request scope. Anything calling `notify` outside one (a
+    // script, a test) still gets its push, just inline.
+    await push();
+  }
 }

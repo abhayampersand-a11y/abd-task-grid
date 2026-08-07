@@ -8,6 +8,7 @@ import {
   parseBody,
   requireAdmin,
 } from "@/lib/api";
+import { deleteObjectQuietly } from "@/lib/r2";
 import { adminUserActionSchema } from "@/lib/validation";
 
 async function loadTarget(userId: string) {
@@ -42,9 +43,12 @@ export const DELETE = handler(
   ) => {
     await requireAdmin();
     const { userId } = await ctx.params;
-    await loadTarget(userId);
+    const target = await loadTarget(userId);
 
     await db.user.delete({ where: { id: userId } });
+    // The row is gone, so nothing will ever reference their picture again.
+    await deleteObjectQuietly(target.avatarKey);
+
     return ok({ success: true });
   },
 );
