@@ -102,7 +102,7 @@ export function UserManagement() {
     const rows = users.map((user) => [
       user.fullName,
       user.email,
-      user.mobile,
+      user.mobile ?? "",
       user.status,
       formatDate(user.createdAt),
       String(user.groupCount),
@@ -257,7 +257,7 @@ export function UserManagement() {
                       {user.email}
                     </p>
                     <p className="truncate text-[12.5px] text-ink-muted">
-                      {user.mobile}
+                      {user.mobile ?? "No mobile number"}
                     </p>
                     <p className="mt-1.5 text-[11.5px] text-ink-faint">
                       Joined {formatDate(user.createdAt)} · {user.groupCount}{" "}
@@ -350,7 +350,7 @@ export function UserManagement() {
                         {user.email}
                       </td>
                       <td className="px-5 py-4 text-[13.5px] text-ink-soft">
-                        {user.mobile}
+                        {user.mobile ?? "—"}
                       </td>
                       <td className="px-5 py-4 text-[13.5px] text-ink-soft">
                         {formatDate(user.createdAt)}

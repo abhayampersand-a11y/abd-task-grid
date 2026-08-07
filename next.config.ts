@@ -5,8 +5,9 @@ import type { NextConfig } from "next";
  * cross-origin — the native app has no origin and is never subject to CORS, and
  * the browser app here is same-origin, so nothing else needs this.
  *
- * Development only. Override the origin if Metro is reached over the LAN rather
- * than loopback (`EXPO_WEB_ORIGIN=http://192.168.1.23:8081`).
+ * Development only. The origin depends on how Metro is reached: loopback from
+ * this machine, a LAN IP from a phone's browser. Override for the latter:
+ * `EXPO_WEB_ORIGIN=http://172.20.10.8:8081 pnpm dev --hostname 0.0.0.0`
  */
 const EXPO_WEB_ORIGIN = process.env.EXPO_WEB_ORIGIN ?? "http://localhost:8081";
 

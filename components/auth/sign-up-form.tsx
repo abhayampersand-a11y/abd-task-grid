@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ const INITIAL = {
   acceptTerms: false,
 };
 
-export function SignUpForm() {
+export function SignUpForm({ social }: { social?: ReactNode }) {
   const router = useRouter();
   const [signUp, { isLoading }] = useSignUpMutation();
   const [values, setValues] = useState(INITIAL);
@@ -168,6 +168,8 @@ export function SignUpForm() {
             Create Account
           </Button>
         </form>
+
+        {social}
 
         <div className="mt-7 border-t border-line pt-5 text-center text-sm text-ink-muted">
           Already have an account?{" "}

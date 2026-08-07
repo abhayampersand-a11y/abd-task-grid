@@ -19,8 +19,10 @@ export const POST = handler(async (request: Request) => {
   });
 
   // Same message either way so the form can't be used to enumerate accounts.
+  // A social-only account has no hash, and lands here too rather than leaking
+  // that the address exists under a different sign-in method.
   const invalid = new ApiError(401, "Incorrect email/mobile or password.");
-  if (!user) throw invalid;
+  if (!user || !user.passwordHash) throw invalid;
   if (!(await verifyPassword(password, user.passwordHash))) throw invalid;
 
   if (user.status === "DISABLED") {

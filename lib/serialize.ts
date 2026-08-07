@@ -40,7 +40,8 @@ export function toUserSummary(user: UserSummaryRow): UserSummary {
 }
 
 export function toCurrentUser(user: UserSummaryRow & {
-  mobile: string;
+  mobile: string | null;
+  passwordHash: string | null;
   bio: string | null;
   role: string;
   status: string;
@@ -49,6 +50,8 @@ export function toCurrentUser(user: UserSummaryRow & {
   return {
     ...toUserSummary(user),
     mobile: user.mobile,
+    // The hash itself never leaves the server — only whether there is one.
+    hasPassword: Boolean(user.passwordHash),
     bio: user.bio,
     role: user.role === "ADMIN" ? "ADMIN" : "USER",
     status: user.status as CurrentUser["status"],

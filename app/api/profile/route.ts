@@ -6,9 +6,11 @@ import { updateProfileSchema } from "@/lib/validation";
 export const PATCH = handler(async (request: Request) => {
   const user = await requireUser();
   const input = await parseBody(request, updateProfileSchema);
-  const mobile = input.mobile.replace(/\s+/g, " ").trim();
+  // An empty field clears the number rather than storing "", which would
+  // collide with every other cleared account on the unique index.
+  const mobile = input.mobile?.replace(/\s+/g, " ").trim() || null;
 
-  if (mobile !== user.mobile) {
+  if (mobile && mobile !== user.mobile) {
     const clash = await db.user.findFirst({
       where: { mobile, id: { not: user.id } },
       select: { id: true },

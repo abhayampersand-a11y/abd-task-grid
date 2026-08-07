@@ -69,7 +69,7 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
   const [profile, setProfile] = useState({
     fullName: user.fullName,
     jobTitle: user.jobTitle ?? "",
-    mobile: user.mobile,
+    mobile: user.mobile ?? "",
     bio: user.bio ?? "",
     avatarUrl: user.avatarUrl ?? "",
   });
@@ -248,7 +248,13 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
                   />
                   <InputField
                     label="Mobile Number"
+                    placeholder="+1 555 019 2837"
                     value={profile.mobile}
+                    hint={
+                      user.mobile
+                        ? undefined
+                        : "Optional — social sign-in does not provide one."
+                    }
                     error={profileErrors.mobile}
                     onChange={(event) =>
                       setProfile((p) => ({ ...p, mobile: event.target.value }))
@@ -275,7 +281,7 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
                     setProfile({
                       fullName: user.fullName,
                       jobTitle: user.jobTitle ?? "",
-                      mobile: user.mobile,
+                      mobile: user.mobile ?? "",
                       bio: user.bio ?? "",
                       avatarUrl: user.avatarUrl ?? "",
                     });
@@ -298,25 +304,33 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
               <section className="card overflow-hidden">
                 <header className="border-b border-line px-6 py-4">
                   <h2 className="text-[15px] font-semibold text-ink">
-                    Change Password
+                    {user.hasPassword ? "Change Password" : "Set a Password"}
                   </h2>
+                  {user.hasPassword ? null : (
+                    <p className="mt-1 text-[13px] text-ink-muted">
+                      You signed up with a social provider. Adding a password
+                      lets you sign in with your email as well.
+                    </p>
+                  )}
                 </header>
 
                 <div className="space-y-5 p-6">
-                  <InputField
-                    label="Current password"
-                    type="password"
-                    autoComplete="current-password"
-                    icon={<KeyRound />}
-                    value={passwords.currentPassword}
-                    error={passwordErrors.currentPassword}
-                    onChange={(event) =>
-                      setPasswords((p) => ({
-                        ...p,
-                        currentPassword: event.target.value,
-                      }))
-                    }
-                  />
+                  {user.hasPassword && (
+                    <InputField
+                      label="Current password"
+                      type="password"
+                      autoComplete="current-password"
+                      icon={<KeyRound />}
+                      value={passwords.currentPassword}
+                      error={passwordErrors.currentPassword}
+                      onChange={(event) =>
+                        setPasswords((p) => ({
+                          ...p,
+                          currentPassword: event.target.value,
+                        }))
+                      }
+                    />
+                  )}
                   <div className="grid gap-5 sm:grid-cols-2">
                     <InputField
                       label="New password"
@@ -349,7 +363,7 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
 
                 <footer className="flex justify-end border-t border-line bg-surface-muted px-6 py-4">
                   <Button onClick={savePassword} loading={changing}>
-                    Update password
+                    {user.hasPassword ? "Update password" : "Set password"}
                   </Button>
                 </footer>
               </section>

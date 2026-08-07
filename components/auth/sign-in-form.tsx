@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -12,10 +12,20 @@ import { fromApiFieldErrors, validate, type FieldErrors } from "@/lib/form";
 import { signInSchema } from "@/lib/validation";
 import { toApiError, useSignInMutation } from "@/store/api";
 
-export function SignInForm() {
+export function SignInForm({ social }: { social?: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [signIn, { isLoading }] = useSignInMutation();
+
+  // A failed social sign-in comes back as a redirect to this page carrying the
+  // reason, since the provider left the user in a browser tab, not a fetch.
+  const oauthError = searchParams.get("error");
+  const reportedError = useRef<string | null>(null);
+  useEffect(() => {
+    if (!oauthError || reportedError.current === oauthError) return;
+    reportedError.current = oauthError;
+    toast.error(oauthError);
+  }, [oauthError]);
 
   const [values, setValues] = useState({
     identifier: "",
@@ -123,26 +133,7 @@ export function SignInForm() {
           </Button>
         </form>
 
-        <div className="mt-7 flex items-center gap-4">
-          <span className="h-px flex-1 bg-line" />
-          <span className="text-[12.5px] text-ink-faint">Or continue with</span>
-          <span className="h-px flex-1 bg-line" />
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          {["Google", "Apple"].map((provider) => (
-            <button
-              key={provider}
-              type="button"
-              onClick={() =>
-                toast.info(`${provider} sign-in is not enabled on this workspace.`)
-              }
-              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-line bg-surface text-sm font-medium text-ink-soft transition-colors hover:border-line-strong hover:bg-surface-muted"
-            >
-              {provider}
-            </button>
-          ))}
-        </div>
+        {social}
       </div>
 
       <p className="mt-7 text-center text-sm text-ink-muted">

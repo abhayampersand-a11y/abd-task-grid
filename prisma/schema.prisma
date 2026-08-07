@@ -21,6 +21,12 @@ enum UserStatus {
   DISABLED
 }
 
+enum OAuthProvider {
+  GOOGLE
+  MICROSOFT
+  LINKEDIN
+}
+
 enum GroupVisibility {
   PUBLIC
   PRIVATE
@@ -74,12 +80,17 @@ enum ActivityType {
   GROUP_CREATED
 }
 
+/// `mobile` and `passwordHash` are both optional because an account created
+/// through a social provider has neither: the provider never gives us a phone
+/// number, and there is no password to hash. Password sign-in checks for a
+/// hash before verifying, and the profile screen lets the user fill the number
+/// in later.
 model User {
   id           String     @id @default(cuid())
   fullName     String
   email        String     @unique
-  mobile       String     @unique
-  passwordHash String
+  mobile       String?    @unique
+  passwordHash String?
   avatarUrl    String?
   jobTitle     String?
   bio          String?
@@ -88,6 +99,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  oauthAccounts       OAuthAccount[]
   memberships         GroupMember[]
   invitesReceived     GroupInvitation[] @relation("InvitationInvitee")
   invitesSent         GroupInvitation[] @relation("InvitationInvitedBy")
@@ -102,6 +114,27 @@ model User {
   @@index([role])
   @@index([status])
   @@index([createdAt])
+}
+
+/**
+ * One row per (provider, account) pair a user has signed in with, so the same
+ * person can attach Google *and* Microsoft to one TaskFlow account. The
+ * provider's own subject id is the join key — emails change, `sub` does not.
+ */
+model OAuthAccount {
+  id                String        @id @default(cuid())
+  userId            String
+  provider          OAuthProvider
+  providerAccountId String
+  /// Whatever the provider called the account, for "Connected as …" copy.
+  email             String?
+  createdAt         DateTime      @default(now())
+  lastUsedAt        DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Group {
