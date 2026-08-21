@@ -73,7 +73,7 @@ export default function TermsOfServicePage() {
             agreement between you and <Term>{DEVELOPER_NAME}</Term>, the Google
             Play developer account of <Term>{LEGAL_NAME}</Term>{" "}
             (&ldquo;we&rdquo;, &ldquo;us&rdquo;), covering the Android app
-            published as <Term>com.taskgrid.app</Term> and the web app published
+            published as <Term>com.taskflowpro.app</Term> and the web app published
             as <Term>TaskFlow Pro</Term> at{" "}
             <ExternalLink href="https://abd-task-grid.vercel.app">
               abd-task-grid.vercel.app
@@ -484,7 +484,7 @@ export default function TermsOfServicePage() {
               {
                 label: "Service",
                 value:
-                  "Taskgrid — com.taskgrid.app (Android), TaskFlow Pro (web)",
+                  "Taskgrid — com.taskflowpro.app (Android), TaskFlow Pro (web)",
               },
               {
                 label: "Operated by",

@@ -76,7 +76,7 @@ export default function PrivacyPolicyPage() {
             &ldquo;we&rdquo;, &ldquo;us&rdquo;), which publishes{" "}
             <Term>Taskgrid</Term> (the &ldquo;app&rdquo;). Taskgrid is
             distributed on Google Play under the package name{" "}
-            <Term>com.taskgrid.app</Term> and is also available on the web as{" "}
+            <Term>com.taskflowpro.app</Term> and is also available on the web as{" "}
             <Term>TaskFlow Pro</Term> at{" "}
             <ExternalLink href="https://abd-task-grid.vercel.app">
               abd-task-grid.vercel.app
@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
               {
                 label: "App",
                 value:
-                  "Taskgrid — com.taskgrid.app (Android), TaskFlow Pro (web)",
+                  "Taskgrid — com.taskflowpro.app (Android), TaskFlow Pro (web)",
               },
               {
                 label: "Policy URL",
