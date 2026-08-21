@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/jwt";
 
-const PUBLIC_ROUTES = ["/", "/sign-in", "/sign-up"];
+/**
+ * `/privacy` and `/terms` have to stay reachable signed-out: Google Play
+ * rejects a listing whose policy URL redirects to a sign-in page, and the same
+ * goes for any crawler or reviewer following the link from the store.
+ */
+const PUBLIC_ROUTES = ["/", "/sign-in", "/sign-up", "/privacy", "/terms"];
 const ADMIN_PREFIX = "/admin";
 
 /**

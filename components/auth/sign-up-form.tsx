@@ -21,6 +21,29 @@ const INITIAL = {
   acceptTerms: false,
 };
 
+/**
+ * The two documents the consent checkbox refers to, as documents you can
+ * actually open — they used to be styled `<span>`s, which asked people to agree
+ * to something they had no way to read.
+ *
+ * New tab, so a half-filled form is not thrown away. `stopPropagation` because
+ * the surrounding `<label htmlFor>` would otherwise forward the click on to the
+ * checkbox and toggle it on the way out.
+ */
+function LegalLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      className="font-medium text-brand-600 underline decoration-brand-300 underline-offset-2 transition-colors hover:text-brand-700"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export function SignUpForm({ social }: { social?: ReactNode }) {
   const router = useRouter();
   const [signUp, { isLoading }] = useSignUpMutation();
@@ -140,14 +163,8 @@ export function SignUpForm({ social }: { social?: ReactNode }) {
               label={
                 <>
                   I agree to the{" "}
-                  <span className="font-medium text-brand-600">
-                    Terms of Service
-                  </span>{" "}
-                  and{" "}
-                  <span className="font-medium text-brand-600">
-                    Privacy Policy
-                  </span>
-                  .
+                  <LegalLink href="/terms">Terms of Service</LegalLink> and{" "}
+                  <LegalLink href="/privacy">Privacy Policy</LegalLink>.
                 </>
               }
             />

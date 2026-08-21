@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   BadgeCheck,
-  CreditCard,
   Info,
   KeyRound,
   LogOut,
   Palette,
   Shield,
+  Sparkles,
   Trash2,
   User,
 } from "lucide-react";
@@ -18,7 +19,7 @@ import { AppearanceSection } from "@/components/theme/appearance-section";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { InputField, TextareaField } from "@/components/ui/field";
-import { ConfirmDialog } from "@/components/ui/modal";
+import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fromApiFieldErrors, validate, type FieldErrors } from "@/lib/form";
@@ -26,20 +27,25 @@ import { changePasswordSchema, updateProfileSchema } from "@/lib/validation";
 import { cn, formatDate } from "@/lib/utils";
 import type { CurrentUser } from "@/lib/types";
 import {
+  api,
   toApiError,
   useChangePasswordMutation,
+  useDeleteAccountMutation,
   useMeQuery,
   useSignOutMutation,
   useUpdateProfileMutation,
 } from "@/store/api";
+import { useAppDispatch } from "@/store/hooks";
 
-type Section = "personal" | "appearance" | "security" | "billing";
+type Section = "personal" | "appearance" | "security" | "plan";
 
 const SECTIONS: { value: Section; label: string; icon: typeof User }[] = [
   { value: "personal", label: "Personal Info", icon: User },
   { value: "appearance", label: "Appearance", icon: Palette },
   { value: "security", label: "Security", icon: Shield },
-  { value: "billing", label: "Billing", icon: CreditCard },
+  // Not "Billing": there is nothing to bill. The section says so rather than
+  // implying an invoice exists somewhere.
+  { value: "plan", label: "Plan", icon: Sparkles },
 ];
 
 export function ProfileView() {
@@ -61,9 +67,11 @@ export function ProfileView() {
 
 function ProfileSettings({ user }: { user: CurrentUser }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [updateProfile, { isLoading: saving }] = useUpdateProfileMutation();
   const [changePassword, { isLoading: changing }] = useChangePasswordMutation();
   const [signOut] = useSignOutMutation();
+  const [deleteAccount, { isLoading: deleting }] = useDeleteAccountMutation();
 
   const [section, setSection] = useState<Section>("personal");
   const [profile, setProfile] = useState({
@@ -82,6 +90,12 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
   });
   const [passwordErrors, setPasswordErrors] = useState<FieldErrors>({});
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Whichever of the two the account can actually be confirmed with: a
+  // password if one is set, otherwise the email address typed back.
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function saveProfile() {
     const result = validate(updateProfileSchema, profile);
@@ -128,6 +142,29 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
     await signOut();
     router.push("/sign-in");
     router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError(null);
+    try {
+      await deleteAccount(
+        user.hasPassword
+          ? { password: deleteConfirmation }
+          : { confirmEmail: deleteConfirmation },
+      ).unwrap();
+
+      // The row is gone, so every cached response describes a user that no
+      // longer exists — drop the lot before navigating, or `me` refetches on
+      // the way out and flashes an error the user cannot act on.
+      dispatch(api.util.resetApiState());
+      setConfirmDelete(false);
+      toast.success("Your account has been deleted.");
+      router.push("/sign-in");
+      router.refresh();
+    } catch (error) {
+      const apiError = toApiError(error);
+      setDeleteError(apiError.message);
+    }
   }
 
   return (
@@ -404,41 +441,51 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
                       Danger zone
                     </p>
                     <p className="mt-1.5 text-[13px] leading-relaxed text-ink-soft">
-                      Account deletion is handled by an administrator. Contact
-                      your workspace admin to permanently remove your data and
-                      access.
+                      Deleting your account permanently removes your profile,
+                      your comments and attachments, the groups you created and
+                      every task inside them. This cannot be undone.
                     </p>
-                    <Button
-                      variant="danger"
-                      className="mt-4"
-                      icon={<Trash2 className="size-4" />}
-                      onClick={() =>
-                        toast.info(
-                          "Ask your workspace administrator to delete this account.",
-                        )
-                      }
-                    >
-                      Request account deletion
-                    </Button>
+                    {user.role === "ADMIN" ? (
+                      <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">
+                        Administrator accounts cannot be deleted here — another
+                        administrator has to remove them.
+                      </p>
+                    ) : (
+                      <Button
+                        variant="danger"
+                        className="mt-4"
+                        icon={<Trash2 className="size-4" />}
+                        onClick={() => setConfirmDelete(true)}
+                      >
+                        Delete my account
+                      </Button>
+                    )}
                   </div>
                 </div>
               </section>
             </>
           )}
 
-          {section === "billing" && (
+          {section === "plan" && (
             <section className="card p-8 text-center">
               <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-                <CreditCard className="size-6" />
+                <Sparkles className="size-6" />
               </span>
               <h2 className="mt-5 text-lg font-semibold tracking-tight text-ink">
-                Enterprise Plan
+                Free plan
               </h2>
               <p className="mx-auto mt-2 max-w-md text-[13.5px] leading-relaxed text-ink-muted">
-                Your workspace is on the Enterprise plan with unlimited groups,
-                tasks and members. Billing is managed centrally by your
-                organisation.
+                Every feature is free: unlimited groups, tasks and members. There
+                is nothing to pay, no card on file and no trial to expire. If
+                paid features are ever added, you will be told in advance and
+                nothing will be charged without your agreement.
               </p>
+              <Link
+                href="/terms#fees"
+                className="mt-5 inline-block text-[13px] font-medium text-brand-600 underline decoration-brand-300 underline-offset-4 transition-colors hover:text-brand-700"
+              >
+                Read the terms
+              </Link>
             </section>
           )}
         </div>
@@ -453,6 +500,95 @@ function ProfileSettings({ user }: { user: CurrentUser }) {
         confirmLabel="Sign out"
         tone="primary"
       />
+
+      <Modal
+        open={confirmDelete}
+        onClose={() => {
+          setConfirmDelete(false);
+          setDeleteConfirmation("");
+          setDeleteError(null);
+        }}
+        title="Delete your account?"
+        width="sm"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={() => {
+                setConfirmDelete(false);
+                setDeleteConfirmation("");
+                setDeleteError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              loading={deleting}
+              disabled={!deleteConfirmation.trim()}
+              onClick={handleDeleteAccount}
+            >
+              Delete permanently
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-ink-soft">
+            This is permanent and takes effect immediately. Deleting your
+            account removes:
+          </p>
+          <ul className="space-y-2 text-[13.5px] leading-relaxed text-ink-soft">
+            {[
+              "Your name, email, mobile number, photo, job title and bio",
+              "Your linked Google, Microsoft and LinkedIn sign-ins",
+              "Your comments, attachments, notifications and push tokens",
+              "Groups you created, and every task inside them",
+            ].map((line) => (
+              <li key={line} className="relative pl-5">
+                <span
+                  className="absolute left-0.5 top-[0.6em] size-1.5 rounded-full bg-rose-400"
+                  aria-hidden
+                />
+                {line}
+              </li>
+            ))}
+          </ul>
+          <p className="text-[13.5px] leading-relaxed text-ink-muted">
+            Tasks assigned to you in groups you do not own stay with that group
+            and become unassigned.
+          </p>
+
+          {user.hasPassword ? (
+            <InputField
+              label="Confirm with your password"
+              type="password"
+              autoComplete="current-password"
+              icon={<KeyRound />}
+              value={deleteConfirmation}
+              error={deleteError ?? undefined}
+              onChange={(event) => {
+                setDeleteConfirmation(event.target.value);
+                setDeleteError(null);
+              }}
+            />
+          ) : (
+            <InputField
+              label="Type your email address to confirm"
+              placeholder={user.email}
+              autoComplete="off"
+              hint="Your account has no password — social sign-in never set one."
+              value={deleteConfirmation}
+              error={deleteError ?? undefined}
+              onChange={(event) => {
+                setDeleteConfirmation(event.target.value);
+                setDeleteError(null);
+              }}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

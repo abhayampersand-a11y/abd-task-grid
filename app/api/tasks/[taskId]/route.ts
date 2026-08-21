@@ -54,7 +54,7 @@ async function loadTask(taskId: string, viewerId: string) {
 function buildDetail(
   task: Awaited<ReturnType<typeof loadTask>>,
   viewerId: string,
-  /** Full checklist rows — `taskSummaryInclude` only selects id/done. */
+  /** Full checklist rows — `taskSummaryInclude` only selects `done`. */
   checklist: Parameters<typeof toChecklistItem>[0][],
 ): TaskDetail {
   return {
@@ -73,7 +73,7 @@ export const GET = handler(
     const user = await requireUser();
     const { taskId } = await ctx.params;
 
-    // `checklist` in taskSummaryInclude selects only id/done — re-fetch labels.
+    // `checklist` in taskSummaryInclude selects only `done` — re-fetch labels.
     const [task, checklist] = await Promise.all([
       loadTask(taskId, user.id),
       db.checklistItem.findMany({

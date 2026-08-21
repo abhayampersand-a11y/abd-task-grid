@@ -116,9 +116,19 @@ model User {
   notifications   Notification[]
   pushTokens      PushToken[]
 
-  @@index([role])
-  @@index([status])
-  @@index([createdAt])
+  /// The member directory filters on role + status and sorts by name; the
+  /// admin table filters on role and sorts by signup date. Both are served
+  /// start to finish by one of these.
+  @@index([role, status, fullName])
+  @@index([role, createdAt(sort: Desc)])
+  /// `contains` compiles to ILIKE '%q%', which no B-tree can answer — it
+  /// degrades into a full scan the moment the table is big. A trigram GIN
+  /// index makes those searches index scans instead. Needs the pg_trgm
+  /// extension, created by the migration that adds these.
+  @@index([fullName(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([jobTitle(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([mobile(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 /**
@@ -148,6 +158,12 @@ model Group {
   description String?
   visibility  GroupVisibility @default(PRIVATE)
   colorKey    String          @default("indigo")
+  /// Uploaded group picture. Null means the card falls back to `colorKey` and
+  /// the first letter of the name, which every group always has.
+  iconUrl     String?
+  /// R2 object key behind `iconUrl`, kept so the old file can be deleted when
+  /// the icon changes. Same contract as `User.avatarKey`.
+  iconKey     String?
   createdById String
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -160,6 +176,8 @@ model Group {
 
   @@index([createdById])
   @@index([createdAt])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 model GroupMember {
@@ -173,7 +191,9 @@ model GroupMember {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
-  @@index([userId])
+  /// Covers the `members: { some: { userId } }` semi-join every scoped query
+  /// runs: both columns are in the index, so it never touches the table.
+  @@index([userId, groupId])
 }
 
 /**
@@ -223,11 +243,22 @@ model Task {
   checklist   ChecklistItem[]
   activities  Activity[]
 
-  @@index([groupId])
-  @@index([assigneeId])
-  @@index([createdById])
+  /// Every list and counter in the app scopes tasks by assignee or by group
+  /// first, then narrows on status/dueDate and sorts by createdAt. Each index
+  /// below matches one of those shapes end to end, so Postgres never has to
+  /// sort or filter rows it has already read.
+  @@index([assigneeId, status])
+  @@index([assigneeId, dueDate])
+  @@index([assigneeId, createdAt(sort: Desc)])
+  @@index([groupId, status])
+  @@index([groupId, createdAt(sort: Desc)])
+  @@index([createdById, createdAt(sort: Desc)])
   @@index([status])
   @@index([dueDate])
+  /// Both halves of the search `OR` need an index of their own: leave one out
+  /// and Postgres falls back to a sequential scan for the whole condition.
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([description(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 model TaskComment {
@@ -241,7 +272,7 @@ model TaskComment {
   task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  @@index([taskId])
+  @@index([taskId, createdAt])
 }
 
 model TaskAttachment {
@@ -257,7 +288,7 @@ model TaskAttachment {
   task       Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   uploadedBy User @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
-  @@index([taskId])
+  @@index([taskId, createdAt])
 }
 
 model ChecklistItem {
@@ -269,7 +300,7 @@ model ChecklistItem {
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  @@index([taskId])
+  @@index([taskId, position])
 }
 
 model Activity {
@@ -285,9 +316,10 @@ model Activity {
   task  Task?  @relation(fields: [taskId], references: [id], onDelete: Cascade)
   group Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  @@index([taskId])
-  @@index([groupId])
-  @@index([createdAt])
+  /// Both feeds read the newest rows for one task or one group, so the sort
+  /// column rides along in the index and the read stops after `take`.
+  @@index([taskId, createdAt(sort: Desc)])
+  @@index([groupId, createdAt(sort: Desc)])
 }
 
 /**
@@ -328,5 +360,5 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
-  @@index([createdAt])
+  @@index([userId, createdAt(sort: Desc)])
 }

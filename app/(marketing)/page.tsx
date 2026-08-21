@@ -6,8 +6,8 @@ import {
   CheckCircle2,
   Cpu,
   Layers,
+  LogIn,
   MessagesSquare,
-  PlayCircle,
   ShieldCheck,
   Sparkles,
   UserPlus,
@@ -24,11 +24,17 @@ const NAV = [
   { label: "Benefits", href: "#benefits" },
 ];
 
+/**
+ * Facts about the product, not usage numbers. Anything here has to be checkable
+ * against the app itself: a store reviewer reads this page next to the Terms,
+ * which disclaim uptime warranties and say the service is free — an invented
+ * "99.9% uptime" or user count contradicts both.
+ */
 const STATS = [
-  { value: "500k+", label: "Daily active users" },
-  { value: "12M+", label: "Tasks completed" },
-  { value: "99.9%", label: "Uptime reliability" },
-  { value: "4.9/5", label: "G2 satisfaction" },
+  { value: "Free", label: "Every feature, no card" },
+  { value: "5", label: "Workflow statuses" },
+  { value: "2", label: "Apps, one account" },
+  { value: "0", label: "Ads or trackers" },
 ];
 
 const STEPS = [
@@ -77,6 +83,40 @@ const BENEFITS = [
   },
 ];
 
+/**
+ * Every entry here goes somewhere. The previous footer listed a changelog, an
+ * API doc, a careers page, a status page and a live chat, none of which exist —
+ * dead text in a footer reads as an abandoned product, and a store reviewer
+ * following one of them finds nothing.
+ */
+const FOOTER_COLUMNS: { title: string; links: { label: string; href: string }[] }[] =
+  [
+    {
+      title: "Product",
+      links: [
+        { label: "Features", href: "#features" },
+        { label: "How it works", href: "#how-it-works" },
+        { label: "Benefits", href: "#benefits" },
+      ],
+    },
+    {
+      title: "Account",
+      links: [
+        { label: "Sign up", href: "/sign-up" },
+        { label: "Sign in", href: "/sign-in" },
+        { label: "Delete your account", href: "/privacy#delete-account" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Privacy Policy", href: "/privacy" },
+        { label: "Terms of Service", href: "/terms" },
+        { label: "Contact", href: "mailto:abdtech.apps@gmail.com" },
+      ],
+    },
+  ];
+
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -123,7 +163,7 @@ export default function LandingPage() {
             <div className="animate-fade-up">
               <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-[12.5px] font-semibold text-brand-700">
                 <Sparkles className="size-3.5" />
-                v3.0 is now live for all teams
+                Free for every team
               </span>
 
               <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.08] tracking-tight text-ink sm:text-5xl lg:text-[56px]">
@@ -149,25 +189,31 @@ export default function LandingPage() {
                     size="lg"
                     variant="outline"
                     className="w-full sm:w-auto"
-                    icon={<PlayCircle className="size-4.5" />}
+                    icon={<LogIn className="size-4.5" />}
                   >
-                    Watch Demo
+                    Sign In
                   </Button>
                 </Link>
               </div>
 
+              {/* Was a "Trusted by" logo wall of companies that have never used
+                  this. These are the sign-in providers and platforms the app
+                  actually supports, which is the same shape of reassurance and
+                  happens to be true. */}
               <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
-                  Trusted by
+                  Works with
                 </span>
-                {["Acme", "Loom", "Linear", "Vercel"].map((brand) => (
-                  <span
-                    key={brand}
-                    className="text-[15px] font-semibold text-ink-faint"
-                  >
-                    {brand}
-                  </span>
-                ))}
+                {["Android", "Web", "Google", "Microsoft", "LinkedIn"].map(
+                  (item) => (
+                    <span
+                      key={item}
+                      className="text-[15px] font-semibold text-ink-faint"
+                    >
+                      {item}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
 
@@ -250,10 +296,14 @@ export default function LandingPage() {
                   controls at the group level.
                 </p>
                 <div className="mt-auto space-y-2 pt-4">
+                  {/* Each row names a control the app really has, with a value
+                      the app really uses — `visibility` is PUBLIC or PRIVATE,
+                      and the trail is the activity timeline, not an audit log
+                      product we do not ship. */}
                   {[
-                    ["Team access", "ACTIVE"],
-                    ["Group visibility", "GLOBAL"],
-                    ["Audit logs", "PRO ONLY"],
+                    ["Member status", "ACTIVE"],
+                    ["Group visibility", "PRIVATE"],
+                    ["Activity trail", "ON"],
                   ].map(([label, tag]) => (
                     <div
                       key={label}
@@ -433,8 +483,8 @@ export default function LandingPage() {
                 Ready to transform your team&apos;s workflow?
               </h2>
               <p className="relative mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/70">
-                Join over 10,000 teams building the future of productivity with
-                TaskFlow Pro.
+                Create an account, build your first group and assign a task —
+                the whole thing takes about two minutes.
               </p>
 
               <div className="relative mt-9 flex flex-col justify-center gap-3 sm:flex-row">
@@ -448,13 +498,15 @@ export default function LandingPage() {
                     size="lg"
                     className="w-full border border-white/15 bg-white/10 text-white hover:bg-white/15 sm:w-auto"
                   >
-                    Book a Live Demo
+                    Sign In
                   </Button>
                 </Link>
               </div>
 
+              {/* Claims here have to match the Terms: the service is free,
+                  with no trial that expires and nothing to cancel. */}
               <div className="relative mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[12.5px] text-white/60">
-                {["No credit card", "14-day free trial", "Cancel anytime"].map(
+                {["Every feature free", "No credit card", "No subscription"].map(
                   (item) => (
                     <span key={item} className="inline-flex items-center gap-2">
                       <CheckCircle2 className="size-3.5" />
@@ -482,30 +534,31 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {[
-            {
-              title: "Product",
-              links: ["Changelog", "Integrations", "API Docs", "Security"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Careers", "Privacy", "Terms"],
-            },
-            {
-              title: "Support",
-              links: ["Help Center", "Live Chat", "Status", "Contact"],
-            },
-          ].map((column) => (
+          {FOOTER_COLUMNS.map((column) => (
             <div key={column.title}>
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
                 {column.title}
               </h3>
               <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
-                  <li key={link}>
-                    <span className="text-[13.5px] text-ink-muted transition-colors hover:text-brand-700">
-                      {link}
-                    </span>
+                  <li key={link.label}>
+                    {/* In-page anchors and the mailto go through a plain <a>;
+                        `next/link` is for routes it can prefetch. */}
+                    {link.href.startsWith("/") ? (
+                      <Link
+                        href={link.href}
+                        className="text-[13.5px] text-ink-muted transition-colors hover:text-brand-700"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-[13.5px] text-ink-muted transition-colors hover:text-brand-700"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -515,8 +568,15 @@ export default function LandingPage() {
 
         <div className="border-t border-line">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-5 py-5 text-[12.5px] text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:px-8">
-            <p>© 2026 TaskFlow Pro Inc. All rights reserved.</p>
-            <p>English (US) · Cookie Settings</p>
+            {/* No "Inc." — there is no incorporated entity behind this, and the
+                Privacy Policy names the individual operator. No "Cookie
+                Settings" either: the only cookies set are the session and the
+                theme, both strictly necessary, so there is nothing to settle. */}
+            <p>
+              © {new Date().getFullYear()} ABD Tech. TaskFlow Pro on the web,
+              Taskgrid on Google Play — one account, one service.
+            </p>
+            <p>English (US)</p>
           </div>
         </div>
       </footer>

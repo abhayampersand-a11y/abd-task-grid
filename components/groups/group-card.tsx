@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { CalendarDays, Lock, Globe } from "lucide-react";
 import { AvatarGroup } from "@/components/ui/avatar";
+import { GroupIcon } from "@/components/ui/group-icon";
 import { Progress } from "@/components/ui/progress";
-import { cn, formatDate, groupColor } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import type { GroupSummary } from "@/lib/types";
 
 export function GroupCard({ group }: { group: GroupSummary }) {
-  const color = groupColor(group.colorKey);
   const completion =
     group.taskCount === 0
       ? 0
@@ -16,14 +16,7 @@ export function GroupCard({ group }: { group: GroupSummary }) {
     <Link href={`/groups/${group.id}`} className="block">
       <article className="card card-interactive flex h-full flex-col p-5">
         <header className="flex items-start justify-between gap-3">
-          <span
-            className={cn(
-              "flex size-11 items-center justify-center rounded-xl text-base font-bold",
-              color.chip,
-            )}
-          >
-            {group.name.slice(0, 1).toUpperCase()}
-          </span>
+          <GroupIcon group={group} size="md" />
           <AvatarGroup
             users={group.members}
             total={group.memberCount}

@@ -20,6 +20,7 @@ import type {
   ChangePasswordInput,
   CreateGroupInput,
   CreateTaskInput,
+  DeleteAccountInput,
   InvitationAction,
   SignInInput,
   SignUpInput,
@@ -100,6 +101,13 @@ export interface AdminStats {
   completedTasks: number;
   completionRate: number;
   growthRate: number;
+}
+
+/** What both group-icon endpoints echo back once the row is stored. */
+export interface GroupIconResult {
+  id: string;
+  name: string;
+  iconUrl: string | null;
 }
 
 /** Drops empty values so the querystring stays readable. */
@@ -188,6 +196,42 @@ export const api = createApi({
     deleteGroup: build.mutation<{ success: boolean }, string>({
       query: (groupId) => ({ url: `/groups/${groupId}`, method: "DELETE" }),
       invalidatesTags: ["GroupList", "Dashboard", "TaskList"],
+    }),
+    /**
+     * `fetchBaseQuery` passes FormData through untouched — it only reaches for
+     * JSON.stringify on plain objects — so the browser sets the multipart
+     * boundary itself and no Content-Type must be written by hand.
+     *
+     * The icon shows up on group cards, the dashboard and pending invitations,
+     * so all three lists are invalidated rather than just the open group.
+     */
+    uploadGroupIcon: build.mutation<
+      { group: GroupIconResult },
+      { groupId: string; body: FormData }
+    >({
+      query: ({ groupId, body }) => ({
+        url: `/groups/${groupId}/icon`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (_r, _e, { groupId }) => [
+        { type: "Group", id: groupId },
+        "GroupList",
+        "Dashboard",
+        "Invitation",
+      ],
+    }),
+    removeGroupIcon: build.mutation<{ group: GroupIconResult }, string>({
+      query: (groupId) => ({
+        url: `/groups/${groupId}/icon`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, groupId) => [
+        { type: "Group", id: groupId },
+        "GroupList",
+        "Dashboard",
+        "Invitation",
+      ],
     }),
     inviteGroupMembers: build.mutation<
       { invited: number },
@@ -367,6 +411,15 @@ export const api = createApi({
     changePassword: build.mutation<{ success: boolean }, ChangePasswordInput>({
       query: (body) => ({ url: "/profile/password", method: "POST", body }),
     }),
+    /**
+     * No `invalidatesTags`: the account is gone by the time this resolves, so
+     * refetching `/auth/me` could only spend a round trip to earn a 401. The
+     * caller resets the whole cache instead, which is the honest answer —
+     * every entry in it describes a user that no longer exists.
+     */
+    deleteAccount: build.mutation<{ success: boolean }, DeleteAccountInput>({
+      query: (body) => ({ url: "/profile", method: "DELETE", body }),
+    }),
 
     // ── Admin ─────────────────────────────────────────────────────────────
     adminUsers: build.query<AdminUsersResponse, AdminUserFilters>({
@@ -410,6 +463,8 @@ export const {
   useCreateGroupMutation,
   useUpdateGroupMutation,
   useDeleteGroupMutation,
+  useUploadGroupIconMutation,
+  useRemoveGroupIconMutation,
   useInviteGroupMembersMutation,
   useRemoveGroupMemberMutation,
   useDirectoryQuery,
@@ -432,6 +487,7 @@ export const {
   useSearchQuery,
   useUpdateProfileMutation,
   useChangePasswordMutation,
+  useDeleteAccountMutation,
   useAdminUsersQuery,
   useAdminStatsQuery,
   useSetUserStatusMutation,

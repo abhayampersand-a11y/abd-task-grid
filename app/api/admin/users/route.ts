@@ -1,10 +1,36 @@
 import type { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { handler, ok, requireAdmin } from "@/lib/api";
+import { cached } from "@/lib/cache";
 import type { AdminUserRow, Paginated, UserStatus } from "@/lib/types";
 import type { Prisma } from "@/generated/prisma/client";
 
 const PAGE_SIZE = 8;
+
+/**
+ * The three status totals are the same for every page, every sort and every
+ * search term, and they are whole-table counts — the expensive kind. One
+ * grouped query answers all three, and the answer is shared for CACHE_MS so
+ * paging through the table does not re-count the table on every click.
+ */
+const TOTALS_CACHE_MS = 30_000;
+
+function userStatusTotals() {
+  return cached("admin:user-status-totals", TOTALS_CACHE_MS, async () => {
+    const rows = await db.user.groupBy({
+      by: ["status"],
+      where: { role: "USER" },
+      _count: { _all: true },
+    });
+    const count = (status: UserStatus) =>
+      rows.find((row) => row.status === status)?._count._all ?? 0;
+
+    const active = count("ACTIVE");
+    const disabled = count("DISABLED");
+    const pending = count("PENDING");
+    return { all: active + disabled + pending, active, disabled, pending };
+  });
+}
 
 export const GET = handler(async (request: NextRequest) => {
   await requireAdmin();
@@ -36,7 +62,7 @@ export const GET = handler(async (request: NextRequest) => {
         ? { createdAt: "asc" }
         : { createdAt: "desc" };
 
-  const [total, users, active, disabled, pending] = await Promise.all([
+  const [total, users, totals] = await Promise.all([
     db.user.count({ where }),
     db.user.findMany({
       where,
@@ -47,9 +73,7 @@ export const GET = handler(async (request: NextRequest) => {
         _count: { select: { memberships: true, tasksAssigned: true } },
       },
     }),
-    db.user.count({ where: { role: "USER", status: "ACTIVE" } }),
-    db.user.count({ where: { role: "USER", status: "DISABLED" } }),
-    db.user.count({ where: { role: "USER", status: "PENDING" } }),
+    userStatusTotals(),
   ]);
 
   const items: AdminUserRow[] = users.map((user) => ({
@@ -74,7 +98,7 @@ export const GET = handler(async (request: NextRequest) => {
     pageSize: PAGE_SIZE,
     total,
     totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
-    totals: { all: active + disabled + pending, active, disabled, pending },
+    totals,
   };
 
   return ok(payload);

@@ -12,6 +12,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { AvatarGroup } from "@/components/ui/avatar";
+import { GroupIcon } from "@/components/ui/group-icon";
 import { Button, Fab } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyTasksIllustration } from "@/components/ui/illustrations";
@@ -33,6 +34,7 @@ import {
   useDeleteTaskMutation,
   useGroupQuery,
   useTasksQuery,
+  useTaskStatsQuery,
 } from "@/store/api";
 import { GroupSettingsModal } from "./group-settings-modal";
 
@@ -70,9 +72,17 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
   const { data: tasksData, isFetching } = useTasksQuery(query);
 
-  // Counts for the tab badges, unaffected by the filter bar.
-  const { data: toMe } = useTasksQuery({ scope: "assigned-to-me", groupId });
-  const { data: byMe } = useTasksQuery({ scope: "assigned-by-me", groupId });
+  // Counts for the tab badges, unaffected by the filter bar. These ask the
+  // server for the numbers only: fetching both full task lists just to read
+  // `.length` meant every visit to a group downloaded every task in it, twice.
+  const { data: toMe } = useTaskStatsQuery({
+    scope: "assigned-to-me",
+    groupId,
+  });
+  const { data: byMe } = useTaskStatsQuery({
+    scope: "assigned-by-me",
+    groupId,
+  });
 
   if (groupLoading) {
     return (
@@ -178,6 +188,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       {/* Member strip */}
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-5 py-4">
         <div className="flex items-center gap-4">
+          {/* The group's own picture leads the strip; the member faces that
+              follow are the people in it. */}
+          <GroupIcon group={group} size="lg" />
           <AvatarGroup
             users={group.allMembers.map((member) => member.user)}
             total={group.memberCount}
@@ -209,12 +222,12 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {
               value: "assigned-to-me" as const,
               label: "Assigned to me",
-              count: toMe?.tasks.length ?? 0,
+              count: toMe?.total ?? 0,
             },
             {
               value: "assigned-by-me" as const,
               label: "Assigned by me",
-              count: byMe?.tasks.length ?? 0,
+              count: byMe?.total ?? 0,
             },
           ]}
           value={tab}
@@ -228,12 +241,12 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {
               value: "assigned-to-me" as const,
               label: "Tasks assigned to me",
-              count: toMe?.tasks.length ?? 0,
+              count: toMe?.total ?? 0,
             },
             {
               value: "assigned-by-me" as const,
               label: "Tasks assigned by me",
-              count: byMe?.tasks.length ?? 0,
+              count: byMe?.total ?? 0,
             },
           ]}
           value={tab}

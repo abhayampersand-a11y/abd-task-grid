@@ -16,6 +16,7 @@ import {
   toUserSummary,
   userSummarySelect,
 } from "@/lib/serialize";
+import { groupTaskCounters } from "@/lib/queries";
 import { updateGroupSchema } from "@/lib/validation";
 import type { GroupDetail } from "@/lib/types";
 
@@ -41,16 +42,8 @@ export const GET = handler(
 
     const isOwner = membership.role === "OWNER";
 
-    const [completed, active, overdue, pending] = await Promise.all([
-      db.task.count({ where: { groupId, status: "COMPLETED" } }),
-      db.task.count({ where: { groupId, status: { not: "COMPLETED" } } }),
-      db.task.count({
-        where: {
-          groupId,
-          status: { not: "COMPLETED" },
-          dueDate: { lt: new Date() },
-        },
-      }),
+    const [counters, pending] = await Promise.all([
+      groupTaskCounters(groupId),
       // Only the owner can invite, so only the owner is shown the outbox.
       isOwner
         ? db.groupInvitation.findMany({
@@ -67,12 +60,13 @@ export const GET = handler(
       description: group.description,
       visibility: group.visibility,
       colorKey: group.colorKey,
+      iconUrl: group.iconUrl,
       createdAt: group.createdAt.toISOString(),
       memberCount: group._count.members,
       taskCount: group._count.tasks,
-      completedTaskCount: completed,
-      activeTaskCount: active,
-      overdueTaskCount: overdue,
+      completedTaskCount: counters.completed,
+      activeTaskCount: counters.active,
+      overdueTaskCount: counters.overdue,
       myRole: isOwner ? "OWNER" : "MEMBER",
       createdBy: toUserSummary(group.createdBy),
       members: group.members.slice(0, 6).map((m) => toUserSummary(m.user)),

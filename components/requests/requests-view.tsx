@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, Users, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { GroupIcon } from "@/components/ui/group-icon";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { EmptyInboxIllustration } from "@/components/ui/illustrations";
@@ -87,14 +88,21 @@ export function RequestsView() {
                   key={invitation.id}
                   className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center"
                 >
-                  <span
-                    className={cn(
-                      "flex size-12 shrink-0 items-center justify-center rounded-2xl",
-                      tint.chip,
-                    )}
-                  >
-                    <Users className="size-5.5" />
-                  </span>
+                  {invitation.group.iconUrl ? (
+                    <GroupIcon group={invitation.group} size="lg" />
+                  ) : (
+                    // No picture yet: the generic people glyph says "group"
+                    // better than the first letter of the name does in a list
+                    // where every row is already one group.
+                    <span
+                      className={cn(
+                        "flex size-12 shrink-0 items-center justify-center rounded-2xl",
+                        tint.chip,
+                      )}
+                    >
+                      <Users className="size-5.5" />
+                    </span>
+                  )}
 
                   <div className="min-w-0 flex-1 space-y-1">
                     <p className="text-[15px] font-semibold text-ink">

@@ -92,11 +92,13 @@ export function Sidebar({
             )}
           </span>
           <div className="min-w-0 flex-1">
+            {/* Was "Acme Corp — Enterprise Plan": a mock workspace name shown
+                to every real user, under a paid tier that does not exist. */}
             <p className="truncate text-[17px] font-bold leading-tight tracking-tight text-ink">
-              {isAdmin ? "TaskFlow Admin" : "Acme Corp"}
+              {isAdmin ? "TaskFlow Admin" : "TaskFlow Pro"}
             </p>
             <p className="truncate text-[12.5px] text-ink-muted">
-              {isAdmin ? "Platform control" : "Enterprise Plan"}
+              {isAdmin ? "Platform control" : "Free plan"}
             </p>
           </div>
           <Button

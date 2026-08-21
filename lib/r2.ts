@@ -52,6 +52,18 @@ export function publicUrlFor(key: string) {
   return `${PUBLIC_URL}/${key}`;
 }
 
+/**
+ * The inverse of `publicUrlFor`, for the rows that store a URL but no key —
+ * task attachments. Returns null for anything that is not served from our own
+ * bucket (an OAuth provider's photo, a pasted link), which must never be
+ * deleted on our say-so.
+ */
+export function keyFromPublicUrl(url: string | null | undefined) {
+  const prefix = PUBLIC_URL ? `${PUBLIC_URL}/` : null;
+  if (!url || !prefix || !url.startsWith(prefix)) return null;
+  return url.slice(prefix.length) || null;
+}
+
 export async function putObject(
   key: string,
   body: Uint8Array,

@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Clock, Crown, Trash2, UserMinus, UserPlus } from "lucide-react";
+import {
+  Clock,
+  Crown,
+  ImagePlus,
+  Trash2,
+  UserMinus,
+  UserPlus,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { GroupIcon } from "@/components/ui/group-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InputField, TextareaField } from "@/components/ui/field";
@@ -17,8 +25,10 @@ import {
   useCancelInvitationMutation,
   useDeleteGroupMutation,
   useInviteGroupMembersMutation,
+  useRemoveGroupIconMutation,
   useRemoveGroupMemberMutation,
   useUpdateGroupMutation,
+  useUploadGroupIconMutation,
 } from "@/store/api";
 import { MemberInviteSearch } from "./member-invite-search";
 
@@ -42,6 +52,7 @@ export function GroupSettingsModal({
   const [invited, setInvited] = useState<UserSummary[]>([]);
   const [removing, setRemoving] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const iconInput = useRef<HTMLInputElement>(null);
 
   const [updateGroup, { isLoading: saving }] = useUpdateGroupMutation();
   const [inviteMembers, { isLoading: inviting }] =
@@ -50,6 +61,9 @@ export function GroupSettingsModal({
   const [removeMember, { isLoading: removingMember }] =
     useRemoveGroupMemberMutation();
   const [deleteGroup, { isLoading: deleting }] = useDeleteGroupMutation();
+  const [uploadIcon, { isLoading: uploadingIcon }] =
+    useUploadGroupIconMutation();
+  const [removeIcon, { isLoading: removingIcon }] = useRemoveGroupIconMutation();
 
   const pending = group.pendingInvitations ?? [];
 
@@ -57,6 +71,33 @@ export function GroupSettingsModal({
     try {
       await updateGroup({ groupId: group.id, name, description }).unwrap();
       toast.success("Group updated");
+    } catch (error) {
+      toast.error(toApiError(error).message);
+    }
+  }
+
+  async function chooseIcon(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // Clearing the input lets the same file be picked again after a failed
+    // upload; otherwise the value never changes and no second event fires.
+    event.target.value = "";
+    if (!file) return;
+
+    const body = new FormData();
+    body.append("file", file);
+
+    try {
+      await uploadIcon({ groupId: group.id, body }).unwrap();
+      toast.success("Group icon updated");
+    } catch (error) {
+      toast.error(toApiError(error).message);
+    }
+  }
+
+  async function clearIcon() {
+    try {
+      await removeIcon(group.id).unwrap();
+      toast.success("Group icon removed");
     } catch (error) {
       toast.error(toApiError(error).message);
     }
@@ -161,6 +202,50 @@ export function GroupSettingsModal({
 
         {pane === "details" && (
           <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <GroupIcon group={group} size="xl" />
+              {isOwner ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={<ImagePlus className="size-4" />}
+                      loading={uploadingIcon}
+                      onClick={() => iconInput.current?.click()}
+                    >
+                      {group.iconUrl ? "Change icon" : "Upload icon"}
+                    </Button>
+                    {group.iconUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        loading={removingIcon}
+                        onClick={clearIcon}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[12px] text-ink-muted">
+                    JPEG, PNG or WebP, up to 4 MB. Shown on every card and list
+                    this group appears in.
+                  </p>
+                  <input
+                    ref={iconInput}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={chooseIcon}
+                  />
+                </div>
+              ) : (
+                <p className="text-[13px] text-ink-muted">
+                  Only the group owner can change the icon.
+                </p>
+              )}
+            </div>
+
             <InputField
               label="Group name"
               value={name}

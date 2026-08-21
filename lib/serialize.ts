@@ -81,6 +81,7 @@ export const invitationInclude = {
       name: true,
       description: true,
       colorKey: true,
+      iconUrl: true,
       _count: { select: { members: true } },
     },
   },
@@ -98,6 +99,7 @@ export function toInvitation(row: {
     name: string;
     description: string | null;
     colorKey: string;
+    iconUrl: string | null;
     _count: { members: number };
   };
   invitedBy: UserSummaryRow;
@@ -113,6 +115,7 @@ export function toInvitation(row: {
       name: row.group.name,
       description: row.group.description,
       colorKey: row.group.colorKey,
+      iconUrl: row.group.iconUrl,
       memberCount: row.group._count.members,
     },
     invitedBy: toUserSummary(row.invitedBy),
@@ -125,7 +128,9 @@ export const taskSummaryInclude = {
   group: { select: { id: true, name: true, colorKey: true } },
   assignee: { select: userSummarySelect },
   createdBy: { select: userSummarySelect },
-  checklist: { select: { id: true, done: true } },
+  // Only the flag: the summary needs two numbers out of this relation, not
+  // the rows, and a task list is hundreds of tasks wide.
+  checklist: { select: { done: true } },
   _count: { select: { comments: true, attachments: true } },
 } as const;
 
@@ -142,7 +147,7 @@ type TaskSummaryRow = {
   group: { id: string; name: string; colorKey: string };
   assignee: UserSummaryRow | null;
   createdBy: UserSummaryRow;
-  checklist: { id: string; done: boolean }[];
+  checklist: { done: boolean }[];
   _count: { comments: number; attachments: number };
 };
 
