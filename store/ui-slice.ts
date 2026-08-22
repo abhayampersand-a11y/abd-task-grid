@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { TaskPriority, TaskStatus } from "@/lib/types";
+import type { StatusFilter } from "@/lib/utils";
 
 export type TaskTab = "assigned-to-me" | "assigned-by-me";
 
@@ -14,7 +15,7 @@ export interface TaskFilterState {
 /** Filters for the dashboard's all-tasks table. Kept separate from the
  *  per-group tab filters so switching screens doesn't clobber either. */
 export interface BoardFilterState {
-  status: TaskStatus | "ALL";
+  status: StatusFilter;
   priority: TaskPriority | "ALL";
   assigneeId: string | "ALL";
   assignedBy: string | "ALL";

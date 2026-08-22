@@ -36,8 +36,9 @@ import {
   isOverdue,
   PRIORITY_META,
   PRIORITY_ORDER,
-  STATUS_META,
-  STATUS_ORDER,
+  STATUS_FILTER_OPTIONS,
+  statusFilterLabel,
+  statusFilterParam,
 } from "@/lib/utils";
 import type { TaskSummary, UserSummary } from "@/lib/types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -103,7 +104,7 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
   const query = useMemo(
     () => ({
       scope: "all" as const,
-      status: filters.status === "ALL" ? undefined : filters.status,
+      status: statusFilterParam(filters.status),
       priority: filters.priority === "ALL" ? undefined : filters.priority,
       assigneeId: filters.assigneeId === "ALL" ? undefined : filters.assigneeId,
       assignedBy: filters.assignedBy === "ALL" ? undefined : filters.assignedBy,
@@ -258,14 +259,14 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
             label="Pending"
             value={stats.pending}
             dot="bg-ink-faint"
-            onClick={() => dispatch(setBoardFilter({ status: "TODO" }))}
+            onClick={() => dispatch(setBoardFilter({ status: "PENDING" }))}
           />
           <StatTile
             label="In progress"
             value={stats.inProgress}
             dot="bg-brand-600"
             valueClass="text-brand-600"
-            onClick={() => dispatch(setBoardFilter({ status: "IN_PROGRESS" }))}
+            onClick={() => dispatch(setBoardFilter({ status: "ACTIVE" }))}
           />
           <StatTile
             label="Completed"
@@ -299,16 +300,8 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
 
         <Chip
           label="Status"
-          value={
-            filters.status === "ALL" ? "All" : STATUS_META[filters.status].label
-          }
-          options={[
-            { value: "ALL", label: "All statuses" },
-            ...STATUS_ORDER.map((s) => ({
-              value: s,
-              label: STATUS_META[s].label,
-            })),
-          ]}
+          value={statusFilterLabel(filters.status)}
+          options={STATUS_FILTER_OPTIONS}
           onSelect={(value) =>
             dispatch(setBoardFilter({ status: value as typeof filters.status }))
           }
@@ -622,13 +615,7 @@ export function TaskBoard({ people }: { people: UserSummary[] }) {
           <SheetSelect
             label="Status"
             value={filters.status}
-            options={[
-              { value: "ALL", label: "All statuses" },
-              ...STATUS_ORDER.map((s) => ({
-                value: s,
-                label: STATUS_META[s].label,
-              })),
-            ]}
+            options={STATUS_FILTER_OPTIONS}
             onChange={(value) =>
               dispatch(
                 setBoardFilter({ status: value as typeof filters.status }),
@@ -888,7 +875,7 @@ function FilterMenu({
           <DropdownItem
             icon={<CircleDashed />}
             onClick={() => {
-              onChange({ status: "TODO" });
+              onChange({ status: "PENDING" });
               close();
             }}
           >
@@ -897,7 +884,7 @@ function FilterMenu({
           <DropdownItem
             icon={<Timer />}
             onClick={() => {
-              onChange({ status: "IN_PROGRESS" });
+              onChange({ status: "ACTIVE" });
               close();
             }}
           >

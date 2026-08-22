@@ -22,7 +22,12 @@ export function buildTaskWhere(
 ): Prisma.TaskWhereInput {
   const scope = params.get("scope") ?? "assigned-to-me";
   const groupId = params.get("groupId");
-  const status = params.get("status");
+  // A stat tile covers more than one status, so the param accepts a
+  // comma-separated list and matches any of them.
+  const statuses = (params.get("status") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean) as TaskStatus[];
   const priority = params.get("priority");
   const assignedBy = params.get("assignedBy");
   const assigneeId = params.get("assigneeId");
@@ -33,7 +38,11 @@ export function buildTaskWhere(
     // Never leak tasks from groups the viewer isn't in.
     group: { members: { some: { userId } } },
     ...(groupId ? { groupId } : {}),
-    ...(status ? { status: status as TaskStatus } : {}),
+    ...(statuses.length === 1
+      ? { status: statuses[0] }
+      : statuses.length > 1
+        ? { status: { in: statuses } }
+        : {}),
     ...(priority ? { priority: priority as TaskPriority } : {}),
     ...(assignedBy ? { createdById: assignedBy } : {}),
     ...(assigneeId ? { assigneeId } : {}),

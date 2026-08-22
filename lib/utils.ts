@@ -205,3 +205,52 @@ export function toDateInputValue(value: string | null | undefined) {
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 10);
 }
+
+/**
+ * The board's stat tiles each stand for a bucket of statuses, not a single
+ * one, so filtering by a tile has to match the same bucket the tile counted —
+ * otherwise "In progress: 2" opens a list with one row in it.
+ */
+export const STATUS_GROUPS = {
+  PENDING: ["BACKLOG", "TODO"],
+  ACTIVE: ["IN_PROGRESS", "IN_REVIEW"],
+} as const satisfies Record<string, readonly TaskStatus[]>;
+
+export type StatusGroup = keyof typeof STATUS_GROUPS;
+
+/** Anything the status filter can hold: every status, one bucket, or one status. */
+export type StatusFilter = "ALL" | StatusGroup | TaskStatus;
+
+const STATUS_GROUP_LABEL: Record<StatusGroup, string> = {
+  PENDING: "Pending",
+  ACTIVE: "In Progress",
+};
+
+function isStatusGroup(value: StatusFilter): value is StatusGroup {
+  return value in STATUS_GROUPS;
+}
+
+/** Short label for the filter chip. */
+export function statusFilterLabel(value: StatusFilter): string {
+  if (value === "ALL") return "All";
+  return isStatusGroup(value)
+    ? STATUS_GROUP_LABEL[value]
+    : STATUS_META[value].label;
+}
+
+/** The `status` param for GET /api/tasks — a bucket sends every status in it. */
+export function statusFilterParam(value: StatusFilter): string | undefined {
+  if (value === "ALL") return undefined;
+  return isStatusGroup(value) ? STATUS_GROUPS[value].join(",") : value;
+}
+
+/** Options for the status dropdowns: the tile buckets first, then each status. */
+export const STATUS_FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: "ALL", label: "All statuses" },
+  { value: "PENDING", label: "Pending (Backlog + To Do)" },
+  { value: "ACTIVE", label: "In Progress (+ In Review)" },
+  ...STATUS_ORDER.map((status) => ({
+    value: status as StatusFilter,
+    label: STATUS_META[status].label,
+  })),
+];
